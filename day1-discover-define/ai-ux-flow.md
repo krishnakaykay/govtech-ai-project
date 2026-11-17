@@ -39,3 +39,22 @@ _Not filled in yet._
 ## How we measure trust (Expert)
 
 error rate in approvals
+
+## AI-UX readiness
+
+**Scenario:** B · ICA passport applications
+**Moment:** When a user submits a passport renewal or apply form
+**Level reached:** 3 of 3
+**What we ship:** Invisible UI is earned. Keep measuring the correction rate, and revert to a validator UI if people start fixing the AI’s work.
+
+### Levels
+
+- Level 01 · Trigger Accuracy: Pass. Trigger is when people submit
+- Level 02 · System Transparency: Pass. Yes- the errors are illustrated by comparing with what people uploaded
+- Level 03 · Invisible Integration: Pass. no. there is no validation required of AI's outputs.
+
+### Trust gaps
+
+- Black box: NA
+- Hallucination: NA Move: RAG
+- Control: Yes. If AI says there is an error and people cannot go past it Move: Have an override button to submit with user's input to go into manual validation
