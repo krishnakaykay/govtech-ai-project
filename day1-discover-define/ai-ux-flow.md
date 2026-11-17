@@ -51,7 +51,7 @@ error rate in approvals
 
 - Level 01 · Trigger Accuracy: Pass. Trigger is when people submit
 - Level 02 · System Transparency: Pass. Yes- the errors are illustrated by comparing with what people uploaded
-- Level 03 · Invisible Integration: Pass. no. there is no validation required of AI's outputs.
+- Level 03 · Invisible Integration: Pass. no. there is no validation required of AI's outputs from the end user. However there is validation required from the public officer before a critical decision
 
 ### Trust gaps
 
