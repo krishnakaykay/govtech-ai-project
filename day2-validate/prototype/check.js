@@ -35,7 +35,10 @@ function checkApplication(app, rules) {
 
   // Who counts as a child (made-up rulebook).
   var isChild;
-  if (isNumber(app.age)) {
+  if (isNumber(app.age) && (app.age < 0 || app.age > 120 || Math.floor(app.age) !== app.age)) {
+    need("age", "An age between 0 and 120, in whole years");
+    isChild = app.applicant === "child";
+  } else if (isNumber(app.age)) {
     isChild = app.age < rules.childUnderAge;
   } else {
     need("age", "The date of birth of the passport holder");
@@ -68,6 +71,8 @@ function checkApplication(app, rules) {
     var maxMB = rules.photo.maxFileSizeMB;
     if (!isNumber(photo.sizeMB)) {
       need("photoFile", "The file size of the photo");
+    } else if (photo.sizeMB <= 0) {
+      need("photoFile", "A photo file larger than 0 MB");
     } else if (photo.sizeMB >= maxMB) {
       need("photoFile", "A photo file smaller than " + maxMB + " MB (yours is " + photo.sizeMB + " MB)");
     }

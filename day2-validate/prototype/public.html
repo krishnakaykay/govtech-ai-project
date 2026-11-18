@@ -40,6 +40,8 @@
     <select id="sample" onchange="fillFromSample()">
       <option value="">Start blank</option>
     </select>
+    <label><input id="force-fail" type="checkbox" onchange="FORCE_SAVE_FAILURE = this.checked">
+      Make the next submit fail (to show what happens when the system is down)</label>
   </div>
 
   <ol class="steps">
@@ -490,12 +492,44 @@
 
   function sendToOfficer(app, result, overridden) {
     var data = loadStore();
+    var box = el("check-result");
+
+    // Unhappy path: the same application sent twice.
+    var already = data.queue.some(function (q) { return q.app.id === app.id; }) ||
+      data.outbox.some(function (m) { return m.id === app.id; });
+    if (already) {
+      box.innerHTML = "";
+      box.className = "card warn";
+      box.appendChild(make("h2", "This application has already been submitted"));
+      box.appendChild(make("p", "Application id " + app.id + " was sent before, so we have not sent it again. " +
+        "Use \"Check my application\" to see its progress, or start a new application."));
+      var fresh = make("button", "Start a new application", "btn primary");
+      fresh.onclick = function () { resetForm(); box.classList.add("hidden"); };
+      box.appendChild(fresh);
+      box.classList.remove("hidden");
+      el("lookup-id").value = app.id;
+      return;
+    }
+
     data.queue.push({ app: app, result: result, overridden: overridden });
-    saveStore(data);
+
+    // Unhappy path: the system could not save. Keep everything the applicant typed.
+    if (!saveStore(data)) {
+      box.innerHTML = "";
+      box.className = "card error";
+      box.appendChild(make("h2", "We could not submit your application"));
+      box.appendChild(make("p", "Something went wrong on our side. Your application has NOT been sent, " +
+        "but nothing is lost: everything you entered is still in the form. Please try again in a few minutes."));
+      box.appendChild(make("p", "Reference: " + app.id + ". You do not need to fill in the form again.", "muted"));
+      var retry = make("button", "Try again", "btn primary");
+      retry.onclick = function () { sendToOfficer(app, result, overridden); };
+      box.appendChild(retry);
+      box.classList.remove("hidden");
+      return;
+    }
 
     var id = app.id;
     resetForm();
-    var box = el("check-result");
     box.innerHTML = "";
     box.className = "card ok";
     box.appendChild(make("h2", "Application submitted"));

@@ -12,8 +12,18 @@ function loadStore() {
   return { queue: [], outbox: [], nextId: 2001 };
 }
 
+// Demo only: when true, the next saves fail on purpose, to show the unhappy path.
+var FORCE_SAVE_FAILURE = false;
+
+// Returns true if saved, false if not. Callers must tell the user when it fails.
 function saveStore(data) {
-  localStorage.setItem(STORE_KEY, JSON.stringify(data));
+  try {
+    if (FORCE_SAVE_FAILURE) throw new Error("Forced failure (demo)");
+    localStorage.setItem(STORE_KEY, JSON.stringify(data));
+    return true;
+  } catch (e) {
+    return false;
+  }
 }
 
 function clearStore() {

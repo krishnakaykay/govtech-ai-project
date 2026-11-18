@@ -176,7 +176,11 @@
       text: applicantMessage(item.app.id, decision, details)
     });
     data.queue.splice(index, 1);
-    saveStore(data);
+    if (!saveStore(data)) {
+      window.alert("Your decision was not saved, and no reply was sent. The application is still in the queue. Please try again.");
+      render();
+      return;
+    }
     render();
   }
 
