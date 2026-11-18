@@ -54,14 +54,26 @@
           <option value="child">My child</option>
         </select>
       </div>
+      <div>
+        <label for="age">Age of passport holder</label>
+        <input id="age" type="number" min="0" max="120">
+      </div>
     </div>
 
+    <h3>Documents</h3>
+    <p class="muted">Children are under 14. This prototype does not take real files, so tick what you have attached.</p>
+    <div id="adult-docs">
+      <label><input id="id-card" type="checkbox"> I have attached my identity card</label>
+    </div>
     <div id="vaccination-block" class="hidden">
+      <label><input id="birth-record" type="checkbox"> I have attached my child's birth record</label>
+      <label><input id="guardian-id" type="checkbox"> I have attached the identity card of a consenting parent or guardian</label>
       <label><input id="vaccination" type="checkbox"> I have attached my child's vaccination details</label>
     </div>
 
     <h3>Photo</h3>
-    <p class="muted">The photo must be 300 to 400 pixels wide and high, under 20 MB, with your face fully visible.
+    <p class="muted">The photo must be 300 to 400 pixels wide and high, under 20 MB, taken in the last 4 months,
+      on a plain light blue background, with the face and both ears visible.
       This prototype does not take real photos, so enter the photo details instead.</p>
     <div class="row">
       <div><label for="photo-w">Width (pixels)</label><input id="photo-w" type="number" min="0"></div>
@@ -72,6 +84,45 @@
         <select id="photo-face">
           <option value="visible">Fully visible</option>
           <option value="covered">Partly covered</option>
+          <option value="unclear">Not sure</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div><label for="photo-months">Taken how many months ago</label><input id="photo-months" type="number" min="0"></div>
+      <div>
+        <label for="photo-bg">Background</label>
+        <select id="photo-bg">
+          <option value="light blue">Plain light blue</option>
+          <option value="white">White</option>
+          <option value="grey">Grey</option>
+          <option value="patterned">Patterned or busy</option>
+        </select>
+      </div>
+      <div>
+        <label for="photo-ears">Both ears visible</label>
+        <select id="photo-ears">
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+          <option value="unclear">Not sure</option>
+        </select>
+      </div>
+      <div>
+        <label for="photo-glasses">Glasses</label>
+        <select id="photo-glasses">
+          <option value="none">No glasses</option>
+          <option value="clear">Clear glasses</option>
+          <option value="tinted">Tinted glasses or sunglasses</option>
+          <option value="unclear">Not sure</option>
+        </select>
+      </div>
+      <div>
+        <label for="photo-headgear">Headgear</label>
+        <select id="photo-headgear">
+          <option value="none">None</option>
+          <option value="daily-face-visible">Worn every day, face fully visible</option>
+          <option value="covers-face">Covers part of the face</option>
+          <option value="not-daily">Not worn every day</option>
           <option value="unclear">Not sure</option>
         </select>
       </div>
@@ -99,7 +150,9 @@
 <script src="store.js"></script>
 <script>
   function toggleVaccination() {
-    el("vaccination-block").classList.toggle("hidden", el("applicant").value !== "child");
+    var child = el("applicant").value === "child";
+    el("vaccination-block").classList.toggle("hidden", !child);
+    el("adult-docs").classList.toggle("hidden", child);
   }
 
   function newId() {
@@ -117,11 +170,20 @@
     el("app-id").value = s.id;
     el("app-type").value = s.type;
     el("applicant").value = s.applicant;
-    el("vaccination").checked = s.vaccinationProvided;
+    el("age").value = s.age;
+    el("id-card").checked = !!s.idCardProvided;
+    el("birth-record").checked = !!s.birthRecordProvided;
+    el("guardian-id").checked = !!s.guardianIdProvided;
+    el("vaccination").checked = !!s.vaccinationProvided;
     el("photo-w").value = s.photo.width;
     el("photo-h").value = s.photo.height;
     el("photo-mb").value = s.photo.sizeMB;
     el("photo-face").value = s.photo.face;
+    el("photo-months").value = s.photo.takenMonthsAgo;
+    el("photo-bg").value = s.photo.background;
+    el("photo-ears").value = s.photo.ears;
+    el("photo-glasses").value = s.photo.glasses;
+    el("photo-headgear").value = s.photo.headgear;
     toggleVaccination();
     el("check-result").classList.add("hidden");
   }
@@ -131,11 +193,20 @@
     el("app-id").value = newId();
     el("app-type").value = "new";
     el("applicant").value = "adult";
+    el("age").value = "";
+    el("id-card").checked = false;
+    el("birth-record").checked = false;
+    el("guardian-id").checked = false;
     el("vaccination").checked = false;
     el("photo-w").value = "";
     el("photo-h").value = "";
     el("photo-mb").value = "";
     el("photo-face").value = "visible";
+    el("photo-months").value = "";
+    el("photo-bg").value = "light blue";
+    el("photo-ears").value = "yes";
+    el("photo-glasses").value = "none";
+    el("photo-headgear").value = "none";
     toggleVaccination();
   }
 
@@ -150,12 +221,21 @@
       id: el("app-id").value,
       type: el("app-type").value,
       applicant: applicant,
+      age: numberOrNull("age"),
+      idCardProvided: applicant === "adult" && el("id-card").checked,
+      birthRecordProvided: applicant === "child" && el("birth-record").checked,
+      guardianIdProvided: applicant === "child" && el("guardian-id").checked,
       vaccinationProvided: applicant === "child" && el("vaccination").checked,
       photo: {
         width: numberOrNull("photo-w"),
         height: numberOrNull("photo-h"),
         sizeMB: numberOrNull("photo-mb"),
-        face: el("photo-face").value
+        takenMonthsAgo: numberOrNull("photo-months"),
+        background: el("photo-bg").value,
+        face: el("photo-face").value,
+        ears: el("photo-ears").value,
+        glasses: el("photo-glasses").value,
+        headgear: el("photo-headgear").value
       }
     };
   }
