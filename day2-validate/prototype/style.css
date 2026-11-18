@@ -81,6 +81,7 @@ td .btn { padding: 7px 12px; font-size: 13px; margin: 0 6px 6px 0; }
 
 /* Result boxes */
 .warn { background: var(--check-soft); border-color: #f0c27a; border-left: 6px solid #e08a00; }
+.error { background: var(--fix-soft); border-color: #f0b4ad; border-left: 6px solid var(--fix); }
 .ok { background: var(--ok-soft); border-color: #a9d8bb; border-left: 6px solid var(--ok); }
 .msg { white-space: pre-wrap; font-size: 15px; background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--blue); border-radius: 3px; padding: 12px 16px; margin-top: 10px; }
 

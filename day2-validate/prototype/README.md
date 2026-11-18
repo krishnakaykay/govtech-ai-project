@@ -76,6 +76,13 @@ If the rules cannot decide, for example when it is hard to tell if the face is v
 - `test-check.js`: checks every sample case gets the expected suggestion
 - `approval-test-cases.js`: 119 made-up applications for the false-approval test, each with the correct answer set by hand
 - `test-false-approvals.js`: counts how often the rules suggest Approved for an application that should not pass
+- `test-unhappy-path.js`: forces a save failure and checks nothing is lost, plus duplicate submits and impossible inputs
+
+## Unhappy path
+
+- **System down (forced failure).** On `public.html`, tick "Make the next submit fail" in the demo box, then submit. The page says it could not submit, keeps everything typed, and offers "Try again". Untick the box and press it. On the officer page, a failed save keeps the case in the queue and sends no reply.
+- **Submitted twice.** The second submit is stopped, and the applicant is pointed to "Check my application".
+- **Impossible details.** An age below 0, above 120 or not a whole number, and a 0 MB photo file, are asked for again. They are never approved.
 
 ## False-approval test
 
