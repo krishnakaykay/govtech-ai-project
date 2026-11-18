@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<!--
+  Passport pre-submit check: prototype v1.
+  Plain rule checks, no AI. All data is synthetic.
+  The system only suggests. ICA officers make every final decision.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Passport pre-submit check (prototype)</title>
+<style>
+  body { font-family: system-ui, -apple-system, Segoe UI, sans-serif; margin: 0; background: #f4f5f7; color: #1d2433; }
+  header { background: #1d2433; color: #fff; padding: 14px 24px; }
+  header h1 { margin: 0; font-size: 18px; }
+  header p { margin: 4px 0 0; font-size: 13px; opacity: .8; }
+  nav { display: flex; gap: 8px; padding: 12px 24px; background: #fff; border-bottom: 1px solid #dde1e7; }
+  nav button { border: 1px solid #c4cad4; background: #fff; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+  nav button.active { background: #1d2433; color: #fff; border-color: #1d2433; }
+  main { max-width: 860px; margin: 20px auto; padding: 0 16px; }
+  section { display: none; }
+  section.active { display: block; }
+  .card { background: #fff; border: 1px solid #dde1e7; border-radius: 8px; padding: 18px 20px; margin-bottom: 16px; }
+  h2 { font-size: 17px; margin: 0 0 12px; }
+  h3 { font-size: 15px; margin: 16px 0 8px; }
+  label { display: block; font-size: 14px; margin: 10px 0 4px; font-weight: 600; }
+  input, select { font-size: 14px; padding: 6px 8px; border: 1px solid #c4cad4; border-radius: 4px; }
+  input[type=number] { width: 90px; }
+  .row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; }
+  .btn { border: 0; padding: 9px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; margin: 12px 8px 0 0; }
+  .primary { background: #1a5fb4; color: #fff; }
+  .secondary { background: #e6e9ee; color: #1d2433; }
+  .warn { background: #fff4e0; color: #7a4a00; border: 1px solid #f0c27a; }
+  .ok { background: #e7f6ec; color: #1c6b37; }
+  .msg { white-space: pre-wrap; font-family: ui-monospace, Menlo, monospace; font-size: 13px; background: #f7f8fa; border: 1px solid #dde1e7; border-radius: 6px; padding: 12px; }
+  .tag { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+  .tag-Approved { background: #e7f6ec; color: #1c6b37; }
+  .tag-More { background: #fff4e0; color: #7a4a00; }
+  .tag-Escalated { background: #fde8e8; color: #9b1c1c; }
+  .tag-override { background: #ece8fd; color: #4b2c9b; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid #e6e9ee; vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; color: #5a6475; }
+  td ul { margin: 0; padding-left: 18px; }
+  .muted { color: #5a6475; font-size: 13px; }
+  .banner { background: #fff8db; border: 1px solid #e8d48a; padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 16px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Passport application and renewal: pre-submit check</h1>
+  <p>Prototype v1 · plain rule checks, no AI · all data is synthetic (made up)</p>
+</header>
+
+<nav>
+  <button id="tab-apply" class="active" onclick="showScreen('apply')">1. Applicant form</button>
+  <button id="tab-officer" onclick="showScreen('officer')">2. Officer queue <span id="queue-count"></span></button>
+  <button id="tab-outbox" onclick="showScreen('outbox')">3. Messages sent to applicants</button>
+</nav>
+
+<main>
+  <div class="banner">
+    The system only <b>suggests</b>. An ICA officer makes every final decision.
+    Nothing is sent to an applicant until an officer acts.
+  </div>
+
+  <!-- Screen 1: applicant form and pre-submit check -->
+  <section id="screen-apply" class="active">
+    <div class="card">
+      <h2>Apply for or renew a passport</h2>
+      <label for="sample">Fill from a sample case (optional)</label>
+      <select id="sample" onchange="fillFromSample()">
+        <option value="">Start blank</option>
+      </select>
+
+      <div class="row">
+        <div>
+          <label for="app-id">Application ID</label>
+          <input id="app-id" type="text" size="10">
+        </div>
+        <div>
+          <label for="app-type">Type</label>
+          <select id="app-type">
+            <option value="new">New application</option>
+            <option value="renewal">Renewal</option>
+          </select>
+        </div>
+        <div>
+          <label for="applicant">Passport is for</label>
+          <select id="applicant" onchange="toggleVaccination()">
+            <option value="adult">An adult</option>
+            <option value="child">A child</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="vaccination-block" class="hidden">
+        <label><input id="vaccination" type="checkbox"> Vaccination details of the child are attached</label>
+      </div>
+
+      <h3>Photo</h3>
+      <p class="muted">This prototype does not take real photos. Enter the photo details instead.</p>
+      <div class="row">
+        <div><label for="photo-w">Width (pixels)</label><input id="photo-w" type="number" min="0"></div>
+        <div><label for="photo-h">Height (pixels)</label><input id="photo-h" type="number" min="0"></div>
+        <div><label for="photo-mb">File size (MB)</label><input id="photo-mb" type="number" min="0" step="0.1"></div>
+        <div>
+          <label for="photo-face">Face in the photo</label>
+          <select id="photo-face">
+            <option value="visible">Fully visible</option>
+            <option value="covered">Partly covered</option>
+            <option value="unclear">Hard to tell</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn primary" onclick="submitApplication()">Submit</button>
+    </div>
+
+    <div id="check-result" class="card hidden"></div>
+  </section>
+
+  <!-- Screen 2: officer queue -->
+  <section id="screen-officer">
+    <div class="card">
+      <h2>Officer queue</h2>
+      <p class="muted">Each case shows what the system suggests. The officer decides.</p>
+      <button class="btn secondary" onclick="loadAllSamples()">Add all sample cases to the queue</button>
+      <div id="queue"></div>
+    </div>
+  </section>
+
+  <!-- Screen 3: messages sent to applicants -->
+  <section id="screen-outbox">
+    <div class="card">
+      <h2>Messages sent to applicants</h2>
+      <p class="muted">Only messages an officer has approved appear here. They use the application ID only.</p>
+      <div id="outbox"></div>
+    </div>
+  </section>
+</main>
+
+<script src="rules.js"></script>
+<script src="check.js"></script>
+<script src="sample-applications.js"></script>
+<script>
+  // All data stays in this browser tab. Nothing is saved or sent anywhere.
+  var queue = [];   // cases waiting for an officer
+  var outbox = [];  // messages an officer approved
+  var nextId = 2001;
+
+  function el(id) { return document.getElementById(id); }
+
+  // Build an element with safe text (no HTML from user input).
+  function make(tag, text, className) {
+    var node = document.createElement(tag);
+    if (text !== undefined && text !== null) node.textContent = text;
+    if (className) node.className = className;
+    return node;
+  }
+
+  function tagFor(decision) {
+    var key = decision.split(" ")[0];
+    return make("span", decision, "tag tag-" + key);
+  }
+
+  function showScreen(name) {
+    ["apply", "officer", "outbox"].forEach(function (s) {
+      el("screen-" + s).classList.toggle("active", s === name);
+      el("tab-" + s).classList.toggle("active", s === name);
+    });
+  }
+
+  function toggleVaccination() {
+    el("vaccination-block").classList.toggle("hidden", el("applicant").value !== "child");
+  }
+
+  function newId() { return "ICA" + (nextId++); }
+
+  function fillFromSample() {
+    var idx = el("sample").value;
+    if (idx === "") { resetForm(); return; }
+    var s = SAMPLE_APPLICATIONS[idx];
+    el("app-id").value = s.id;
+    el("app-type").value = s.type;
+    el("applicant").value = s.applicant;
+    el("vaccination").checked = s.vaccinationProvided;
+    el("photo-w").value = s.photo.width;
+    el("photo-h").value = s.photo.height;
+    el("photo-mb").value = s.photo.sizeMB;
+    el("photo-face").value = s.photo.face;
+    toggleVaccination();
+    el("check-result").classList.add("hidden");
+  }
+
+  function resetForm() {
+    el("app-id").value = newId();
+    el("app-type").value = "new";
+    el("applicant").value = "adult";
+    el("vaccination").checked = false;
+    el("photo-w").value = "";
+    el("photo-h").value = "";
+    el("photo-mb").value = "";
+    el("photo-face").value = "visible";
+    toggleVaccination();
+    el("check-result").classList.add("hidden");
+  }
+
+  function numberOrNull(id) {
+    var v = el(id).value;
+    return v === "" ? null : Number(v);
+  }
+
+  function readForm() {
+    var applicant = el("applicant").value;
+    return {
+      id: el("app-id").value.trim() || newId(),
+      type: el("app-type").value,
+      applicant: applicant,
+      vaccinationProvided: applicant === "child" && el("vaccination").checked,
+      photo: {
+        width: numberOrNull("photo-w"),
+        height: numberOrNull("photo-h"),
+        sizeMB: numberOrNull("photo-mb"),
+        face: el("photo-face").value
+      }
+    };
+  }
+
+  // The applicant presses Submit. The rules run BEFORE the case reaches an officer.
+  function submitApplication() {
+    var app = readForm();
+    var result = checkApplication(app, PASSPORT_RULES);
+    var box = el("check-result");
+    box.innerHTML = "";
+    box.classList.remove("hidden");
+
+    if (result.suggestion === DECISIONS.MORE_INFO) {
+      box.className = "card warn";
+      box.appendChild(make("h2", "Before you submit, please check these details"));
+      box.appendChild(make("div", applicantMessage(app.id, DECISIONS.MORE_INFO, result.required), "msg"));
+      box.appendChild(make("p", "Fixing these now avoids your application being returned, which adds about six days.", "muted"));
+
+      var fix = make("button", "Go back and fix", "btn primary");
+      fix.onclick = function () { box.classList.add("hidden"); };
+      box.appendChild(fix);
+
+      // Control: the applicant can always go past the check. An officer then reviews it by hand.
+      var override = make("button", "I think this is wrong: submit anyway for an officer to check", "btn secondary");
+      override.onclick = function () { sendToOfficer(app, result, true); };
+      box.appendChild(override);
+      return;
+    }
+    sendToOfficer(app, result, false);
+  }
+
+  function sendToOfficer(app, result, overridden) {
+    queue.push({ app: app, result: result, overridden: overridden });
+    renderQueue();
+    var box = el("check-result");
+    box.innerHTML = "";
+    box.className = "card ok";
+    box.appendChild(make("h2", "Application received"));
+    box.appendChild(make("p", "Your application id " + app.id +
+      " has been received. An ICA officer will review it and you will get a reply."));
+    resetForm();
+    box.classList.remove("hidden");
+  }
+
+  function loadAllSamples() {
+    SAMPLE_APPLICATIONS.forEach(function (s) {
+      var app = JSON.parse(JSON.stringify(s));
+      queue.push({ app: app, result: checkApplication(app, PASSPORT_RULES), overridden: false });
+    });
+    renderQueue();
+  }
+
+  function renderQueue() {
+    el("queue-count").textContent = queue.length ? "(" + queue.length + ")" : "";
+    var holder = el("queue");
+    holder.innerHTML = "";
+    if (queue.length === 0) {
+      holder.appendChild(make("p", "No cases waiting.", "muted"));
+      return;
+    }
+    var table = make("table");
+    var head = make("tr");
+    ["Application", "System suggests", "Why", "Officer decides"].forEach(function (h) { head.appendChild(make("th", h)); });
+    table.appendChild(head);
+
+    queue.forEach(function (item, i) {
+      var tr = make("tr");
+      var a = item.app;
+
+      var who = make("td");
+      who.appendChild(make("div", a.id));
+      who.appendChild(make("div", (a.type === "renewal" ? "Renewal" : "New") + " · " + a.applicant, "muted"));
+      tr.appendChild(who);
+
+      var sug = make("td");
+      sug.appendChild(tagFor(item.result.suggestion));
+      if (item.overridden) {
+        sug.appendChild(make("br"));
+        sug.appendChild(make("span", "Applicant overrode the check", "tag tag-override"));
+      }
+      tr.appendChild(sug);
+
+      var why = make("td");
+      var reasons = item.result.required.concat(item.result.unclear);
+      if (reasons.length === 0) why.appendChild(make("span", "All rules met", "muted"));
+      else {
+        var ul = make("ul");
+        reasons.forEach(function (r) { ul.appendChild(make("li", r)); });
+        why.appendChild(ul);
+      }
+      tr.appendChild(why);
+
+      var act = make("td");
+      var approve = make("button", "Approve application", "btn primary");
+      approve.onclick = function () { officerDecides(i, DECISIONS.APPROVED); };
+      var ask = make("button", "Ask for more info", "btn secondary");
+      ask.onclick = function () { officerDecides(i, DECISIONS.MORE_INFO); };
+      act.appendChild(approve);
+      act.appendChild(ask);
+      tr.appendChild(act);
+
+      table.appendChild(tr);
+    });
+    holder.appendChild(table);
+  }
+
+  // The officer's choice is final. Only now is a message sent to the applicant.
+  function officerDecides(index, decision) {
+    var item = queue[index];
+    var details = item.result.required.concat(item.result.unclear);
+    if (decision === DECISIONS.MORE_INFO && details.length === 0) {
+      var typed = window.prompt("What details are required? (Do not type personal details.)");
+      if (!typed) return;
+      details = [typed];
+    }
+    if (decision === DECISIONS.MORE_INFO) {
+      // Remove the "rules cannot tell" wording before it goes to the applicant.
+      details = details.map(function (d) {
+        return d.indexOf("cannot tell if the face") >= 0 ? "A photo where the face is fully visible" : d;
+      });
+    }
+    outbox.unshift({
+      id: item.app.id,
+      suggestion: item.result.suggestion,
+      decision: decision,
+      text: applicantMessage(item.app.id, decision, details)
+    });
+    queue.splice(index, 1);
+    renderQueue();
+    renderOutbox();
+  }
+
+  function renderOutbox() {
+    var holder = el("outbox");
+    holder.innerHTML = "";
+    if (outbox.length === 0) {
+      holder.appendChild(make("p", "No messages sent yet.", "muted"));
+      return;
+    }
+    outbox.forEach(function (m) {
+      var card = make("div");
+      card.style.marginBottom = "14px";
+      var line = make("p", "", "muted");
+      line.appendChild(document.createTextNode("System suggested "));
+      line.appendChild(tagFor(m.suggestion));
+      line.appendChild(document.createTextNode("  ·  Officer decided "));
+      line.appendChild(tagFor(m.decision));
+      card.appendChild(line);
+      card.appendChild(make("div", m.text, "msg"));
+      holder.appendChild(card);
+    });
+  }
+
+  // Start up.
+  SAMPLE_APPLICATIONS.forEach(function (s, i) {
+    var opt = make("option", s.id + ": " + s.note);
+    opt.value = i;
+    el("sample").appendChild(opt);
+  });
+  resetForm();
+  renderQueue();
+  renderOutbox();
+</script>
+</body>
+</html>
