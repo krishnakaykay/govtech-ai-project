@@ -35,6 +35,15 @@
     <button class="btn secondary" onclick="resetDemo()">Clear all demo data</button>
   </div>
 
+  <div class="card demo">
+    <h2>False-approval test (made-up cases)</h2>
+    <p class="muted">Tests the riskiest assumption in build-log.md. Adds 20 made-up applications that the
+      rules all suggest Approved. Some of them should not be approved, because what the applicant typed
+      is not true. Check the documents line for each one, then decide. The score appears below.</p>
+    <button class="btn primary" onclick="startApprovalTest()">Start the officer test</button>
+    <div id="test-score"></div>
+  </div>
+
   <div class="card">
     <h2>Waiting for a decision <span id="queue-count"></span></h2>
     <button class="btn secondary" onclick="render()">Refresh</button>
@@ -51,6 +60,7 @@
 <script src="rules.js"></script>
 <script src="check.js"></script>
 <script src="sample-applications.js"></script>
+<script src="approval-test-cases.js"></script>
 <script src="store.js"></script>
 <script>
   function tagFor(decision) {
@@ -68,6 +78,51 @@
     render();
   }
 
+  // Officer test: 10 good cases and 10 bad cases the rules cannot catch, in a random order.
+  function startApprovalTest() {
+    var data = loadStore();
+    if (data.queue.some(function (q) { return q.test; })) {
+      window.alert("A test is already in the queue. Finish it, or clear all demo data first.");
+      return;
+    }
+    var good = APPROVAL_TEST_CASES.filter(function (c) { return c.group === "Complete and correct"; }).slice(0, 10);
+    var traps = APPROVAL_TEST_CASES.filter(function (c) { return c.group.indexOf("Wrong self-report") === 0; });
+    var picked = good.concat(traps);
+    for (var i = picked.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = picked[i]; picked[i] = picked[j]; picked[j] = t;
+    }
+    picked.forEach(function (c) {
+      var app = JSON.parse(JSON.stringify(c));
+      data.queue.push({ app: app, result: checkApplication(app, PASSPORT_RULES), overridden: false,
+        test: { shouldApprove: c.shouldApprove } });
+    });
+    data.testResults = [];
+    saveStore(data);
+    render();
+  }
+
+  function renderTestScore(data) {
+    var holder = el("test-score");
+    holder.innerHTML = "";
+    var results = data.testResults || [];
+    var left = data.queue.filter(function (q) { return q.test; }).length;
+    if (results.length === 0 && left === 0) return;
+    var bad = results.filter(function (r) { return !r.shouldApprove; });
+    var falseApprovals = bad.filter(function (r) { return r.decision === DECISIONS.APPROVED; }).length;
+    var good = results.filter(function (r) { return r.shouldApprove; });
+    var heldBack = good.filter(function (r) { return r.decision !== DECISIONS.APPROVED; }).length;
+    var lines = "Decided: " + results.length + " of " + (results.length + left) +
+      "\nWrong approvals (bad cases approved): " + falseApprovals + " of " + bad.length +
+      "\nGood cases held back: " + heldBack + " of " + good.length;
+    if (left === 0) {
+      lines += "\n\n" + (falseApprovals === 0
+        ? "PASS: every bad case was caught."
+        : "KILL SWITCH: an officer approved an application that should not pass.");
+    }
+    holder.appendChild(make("div", lines, "msg"));
+  }
+
   function resetDemo() {
     if (!window.confirm("Clear all demo applications and replies?")) return;
     clearStore();
@@ -79,6 +134,10 @@
     var data = loadStore();
     var item = data.queue[index];
     if (!item) return;
+    if (item.test) {
+      data.testResults = data.testResults || [];
+      data.testResults.push({ id: item.app.id, shouldApprove: item.test.shouldApprove, decision: decision });
+    }
     var details = item.result.required.concat(item.result.unclear);
     if (decision === DECISIONS.MORE_INFO) {
       // Reword "rules cannot tell" into a plain request before it goes to the applicant.
@@ -122,6 +181,7 @@
       var who = make("td");
       who.appendChild(make("div", a.id));
       who.appendChild(make("div", (a.type === "renewal" ? "Renewal" : "New") + " · " + a.applicant, "muted"));
+      if (a.officerSees) who.appendChild(make("div", a.officerSees, "docs"));
       tr.appendChild(who);
 
       var sug = make("td");
@@ -181,6 +241,7 @@
     var data = loadStore();
     renderQueue(data);
     renderOutbox(data);
+    renderTestScore(data);
   }
 
   // Update automatically when the public page submits in another tab.

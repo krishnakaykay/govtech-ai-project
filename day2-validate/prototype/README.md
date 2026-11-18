@@ -55,6 +55,15 @@ If the rules cannot decide, for example when it is hard to tell if the face is v
 - `check.js`: the rule checks and the message to the applicant
 - `sample-applications.js`: nine made-up applications, each with the suggestion it should get
 - `test-check.js`: checks every sample case gets the expected suggestion
+- `approval-test-cases.js`: 100 made-up applications for the false-approval test, each with the correct answer set by hand
+- `test-false-approvals.js`: counts how often the rules suggest Approved for an application that should not pass
+
+## False-approval test
+
+This tests the riskiest assumption in `../build-log.md`.
+
+- **Part 1, the rules.** Run `node test-false-approvals.js`. Kill switch: any wrong Approved suggestion.
+- **Part 2, the officer.** On `officer.html`, press "Start the officer test". Decide all 20 cases, then read the score.
 
 ## What it leaves out
 
