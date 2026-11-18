@@ -86,7 +86,9 @@
       return;
     }
     var good = APPROVAL_TEST_CASES.filter(function (c) { return c.group === "Complete and correct"; }).slice(0, 10);
-    var traps = APPROVAL_TEST_CASES.filter(function (c) { return c.group.indexOf("Wrong self-report") === 0; });
+    // Every second untrue-answer case, so all four kinds (vaccination, photo, identity card, birth record) appear.
+    var traps = APPROVAL_TEST_CASES.filter(function (c) { return c.group.indexOf("Wrong self-report") === 0; })
+      .filter(function (c, i) { return i % 2 === 0; });
     var picked = good.concat(traps);
     for (var i = picked.length - 1; i > 0; i--) {
       var j = Math.floor(Math.random() * (i + 1));
@@ -141,9 +143,7 @@
     var details = item.result.required.concat(item.result.unclear);
     if (decision === DECISIONS.MORE_INFO) {
       // Reword "rules cannot tell" into a plain request before it goes to the applicant.
-      details = details.map(function (d) {
-        return d.indexOf("cannot tell if the face") >= 0 ? "A photo where the face is fully visible" : d;
-      });
+      details = item.result.required.concat(item.result.unclearAsk || []);
       if (details.length === 0) {
         var typed = window.prompt("What details are required? (Do not type personal details.)");
         if (!typed) return;
