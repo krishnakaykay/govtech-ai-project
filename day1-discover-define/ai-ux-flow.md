@@ -56,5 +56,5 @@ error rate in approvals
 ### Trust gaps
 
 - Black box: NA
-- Hallucination: NA Move: RAG
+- Hallucination: Yes. AI could hallucinate a rule Move: RAG
 - Control: Yes. If AI says there is an error and people cannot go past it Move: Have an override button to submit with user's input to go into manual validation
