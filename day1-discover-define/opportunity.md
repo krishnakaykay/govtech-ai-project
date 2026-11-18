@@ -42,9 +42,9 @@ Trying to learn if AI can improve efficiency
 
 ## Hypothesis
 
-(a) members of public can understand AI (b) if false positive of passport is <0.001%
+(a) members of public can understand AI (b) if false positive of passport is <0.0001%
 
 - Risk type: Feasibility (build a functional app first)
-- Kill switch: if false positive of passport is > 0.001%
-- Kill-switch signal: if false positive of passport is > 0.001%
+- Kill switch: if false positive of passport is > 0.0001%
+- Kill-switch signal: if false positive of passport is > 0.0001%
 - Success signal: 0.5% return rate.
