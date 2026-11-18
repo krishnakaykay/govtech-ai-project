@@ -23,7 +23,7 @@ Constraints. Applications contain identity documents and sensitive personal data
 
 **Guiding policy**
 
-False positive in approvals <0.000001%
+False positive in approvals <0.0001%
 
 **Three coherent actions**
 
