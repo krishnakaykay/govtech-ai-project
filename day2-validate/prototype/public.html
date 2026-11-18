@@ -1,159 +1,262 @@
 <!DOCTYPE html>
 <!--
-  PUBLIC PAGE: what a member of the public sees.
-  They fill in a passport application, get a pre-submit check, and read replies from ICA.
-  They never see the system's suggestion or any officer controls.
-  Plain rule checks, no AI. All data is synthetic.
+  TEST INTERFACE: the application page a member of the public would see.
+  A step-by-step passport application that checks each section as you fill it in,
+  and shows a running summary of what is still needed before you submit.
+  They never see the system's suggestion ("Approved" or "Escalated") or any officer controls.
+  Plain rule checks, no AI. All data is synthetic. Not an official ICA website.
 -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Apply for or renew a passport (prototype)</title>
+<title>Passport application (prototype)</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body class="public">
 
+<div class="proto-bar"><b>Prototype for a course.</b> Not an official ICA website. All data is made up. Do not enter real details.</div>
+
 <div class="topbar">
-  <div class="brand"><span class="logo">✈</span> Passport services</div>
+  <div class="brand"><span class="logo">P</span><span>Passport Services<small>Prototype v1</small></span></div>
   <span class="persona">Test interface</span>
 </div>
+<nav class="mainnav">
+  <a class="current" href="#">Apply for a passport</a>
+  <a href="#replies-card">Check my application</a>
+</nav>
 
 <header class="hero">
-  <h1>Apply for or renew your passport</h1>
-  <p>We check your application before you submit, so it is not returned for missing details.
-    Prototype v1 · all data is synthetic (made up).</p>
+  <div class="crumbs"><span>Home</span><span>Passports</span><span>Apply or renew</span></div>
+  <h1>Apply for or renew a passport</h1>
+  <p>We check your application as you fill it in, so it is not returned for missing or wrong details.
+    An officer reviews every application.</p>
 </header>
 
 <main>
   <div class="card demo">
-    <label for="sample">Fill the form from a sample case</label>
+    <label for="sample">Fill the whole form from a sample case
+      <span class="hint">Each case fills every field with different made-up details.</span></label>
     <select id="sample" onchange="fillFromSample()">
       <option value="">Start blank</option>
     </select>
   </div>
 
-  <div class="card">
-    <h2>Your application</h2>
-    <div class="row">
-      <div>
-        <label for="app-id">Application ID</label>
-        <input id="app-id" type="text" size="10" readonly>
-      </div>
-      <div>
-        <label for="app-type">Type</label>
-        <select id="app-type">
-          <option value="new">New application</option>
-          <option value="renewal">Renewal</option>
-        </select>
-      </div>
-      <div>
-        <label for="applicant">The passport is for</label>
-        <select id="applicant" onchange="toggleVaccination()">
-          <option value="adult">Me (adult)</option>
-          <option value="child">My child</option>
-        </select>
-      </div>
-      <div>
-        <label for="age">Age of passport holder</label>
-        <input id="age" type="number" min="0" max="120">
-      </div>
+  <ol class="steps">
+    <li id="step-1">About the passport holder</li>
+    <li id="step-2">Supporting documents</li>
+    <li id="step-3">Photo</li>
+    <li id="step-4">Review and submit</li>
+  </ol>
+
+  <div class="layout">
+    <div>
+      <!-- Step 1 -->
+      <section class="card" id="sec-1">
+        <div class="section-head"><h2>1. About the passport holder</h2><span class="status" id="status-1">Not started</span></div>
+        <div class="row">
+          <div class="field">
+            <label for="app-id">Application ID</label>
+            <input id="app-id" type="text" size="10" readonly>
+          </div>
+          <div class="field">
+            <label for="app-type">Type of application</label>
+            <select id="app-type" onchange="update()">
+              <option value="new">New passport</option>
+              <option value="renewal">Renewal</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="holder-name">Full name of passport holder <span class="hint">Made-up names only. The name is never shown in replies.</span></label>
+          <input id="holder-name" type="text" size="36" oninput="update()">
+        </div>
+        <div class="row">
+          <div class="field" id="f-age">
+            <label for="age">Age of passport holder <span class="hint">Under 14 counts as a child.</span></label>
+            <input id="age" type="number" min="0" max="120" oninput="update()">
+            <div class="field-msg" id="m-age"></div>
+          </div>
+        </div>
+        <div class="who" id="who">Enter the age to see which documents you need.</div>
+      </section>
+
+      <!-- Step 2 -->
+      <section class="card" id="sec-2">
+        <div class="section-head"><h2>2. Supporting documents</h2><span class="status" id="status-2">Not started</span></div>
+        <p class="muted">This prototype does not upload real files. Type a made-up file name to stand in for the file.</p>
+
+        <div id="adult-docs">
+          <div class="field" id="f-idCard">
+            <label for="file-idCard">Identity card of the passport holder <span class="hint">Front and back.</span></label>
+            <div class="file-row"><input id="file-idCard" type="text" placeholder="e.g. identity_card.pdf" oninput="update()">
+              <input id="size-idCard" type="number" min="0" step="0.1" placeholder="MB" oninput="update()"></div>
+            <div class="field-msg" id="m-idCard"></div>
+          </div>
+        </div>
+
+        <div id="child-docs" class="hidden">
+          <div class="field" id="f-birthRecord">
+            <label for="file-birthRecord">Child's birth record</label>
+            <div class="file-row"><input id="file-birthRecord" type="text" placeholder="e.g. birth_record.pdf" oninput="update()">
+              <input id="size-birthRecord" type="number" min="0" step="0.1" placeholder="MB" oninput="update()"></div>
+            <div class="field-msg" id="m-birthRecord"></div>
+          </div>
+          <div class="field" id="f-guardianId">
+            <label for="file-guardianId">Identity card of a consenting parent or guardian</label>
+            <div class="file-row"><input id="file-guardianId" type="text" placeholder="e.g. parent_identity_card.pdf" oninput="update()">
+              <input id="size-guardianId" type="number" min="0" step="0.1" placeholder="MB" oninput="update()"></div>
+            <div class="field-msg" id="m-guardianId"></div>
+          </div>
+          <div class="field" id="f-vaccination">
+            <label for="file-vaccination">Child's vaccination details</label>
+            <div class="file-row"><input id="file-vaccination" type="text" placeholder="e.g. vaccination_record.pdf" oninput="update()">
+              <input id="size-vaccination" type="number" min="0" step="0.1" placeholder="MB" oninput="update()"></div>
+            <div class="field-msg" id="m-vaccination"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Step 3 -->
+      <section class="card" id="sec-3">
+        <div class="section-head"><h2>3. Photo</h2><span class="status" id="status-3">Not started</span></div>
+        <p class="muted">The photo must be 300 to 400 pixels wide and high, under 20 MB, taken in the last 4 months,
+          on a plain light blue background, with the face and both ears visible and no tinted glasses.
+          This prototype does not take real photos, so describe the photo instead.</p>
+
+        <div class="field">
+          <label for="photo-name">Photo file name</label>
+          <input id="photo-name" type="text" placeholder="e.g. passport_photo.jpg" size="30" oninput="update()">
+        </div>
+        <div class="row">
+          <div class="field" id="f-photoSize">
+            <label>Size in pixels <span class="hint">Width × height</span></label>
+            <input id="photo-w" type="number" min="0" placeholder="Width" oninput="update()">
+            <input id="photo-h" type="number" min="0" placeholder="Height" oninput="update()">
+            <div class="field-msg" id="m-photoSize"></div>
+          </div>
+          <div class="field" id="f-photoFile">
+            <label for="photo-mb">File size (MB)</label>
+            <input id="photo-mb" type="number" min="0" step="0.1" oninput="update()">
+            <div class="field-msg" id="m-photoFile"></div>
+          </div>
+          <div class="field" id="f-photoDate">
+            <label for="photo-months">Taken how many months ago</label>
+            <input id="photo-months" type="number" min="0" oninput="update()">
+            <div class="field-msg" id="m-photoDate"></div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field" id="f-background">
+            <label for="photo-bg">Background</label>
+            <select id="photo-bg" onchange="update()">
+              <option value="">Choose</option>
+              <option value="light blue">Plain light blue</option>
+              <option value="white">White</option>
+              <option value="grey">Grey</option>
+              <option value="patterned">Patterned or busy</option>
+            </select>
+            <div class="field-msg" id="m-background"></div>
+          </div>
+          <div class="field" id="f-face">
+            <label for="photo-face">Face in the photo</label>
+            <select id="photo-face" onchange="update()">
+              <option value="">Choose</option>
+              <option value="visible">Fully visible</option>
+              <option value="covered">Partly covered</option>
+              <option value="unclear">Not sure</option>
+            </select>
+            <div class="field-msg" id="m-face"></div>
+          </div>
+          <div class="field" id="f-ears">
+            <label for="photo-ears">Both ears visible</label>
+            <select id="photo-ears" onchange="update()">
+              <option value="">Choose</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+              <option value="unclear">Not sure</option>
+            </select>
+            <div class="field-msg" id="m-ears"></div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field" id="f-glasses">
+            <label for="photo-glasses">Glasses</label>
+            <select id="photo-glasses" onchange="update()">
+              <option value="">Choose</option>
+              <option value="none">No glasses</option>
+              <option value="clear">Clear glasses</option>
+              <option value="tinted">Tinted glasses or sunglasses</option>
+              <option value="unclear">Not sure</option>
+            </select>
+            <div class="field-msg" id="m-glasses"></div>
+          </div>
+          <div class="field" id="f-headgear">
+            <label for="photo-headgear">Headgear</label>
+            <select id="photo-headgear" onchange="update()">
+              <option value="">Choose</option>
+              <option value="none">None</option>
+              <option value="daily-face-visible">Worn every day, face fully visible</option>
+              <option value="covers-face">Covers part of the face</option>
+              <option value="not-daily">Not worn every day</option>
+              <option value="unclear">Not sure</option>
+            </select>
+            <div class="field-msg" id="m-headgear"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Step 4 -->
+      <section class="card" id="sec-4">
+        <div class="section-head"><h2>4. Review and submit</h2><span class="status" id="status-4">Not ready</span></div>
+        <p class="muted">Check the summary on the right. You can submit now, but missing details mean your application
+          is likely to be returned, which adds about six days.</p>
+        <button class="btn primary" onclick="submitApplication()">Submit application</button>
+        <div id="check-result" class="card hidden" style="margin-top:16px"></div>
+      </section>
+
+      <section class="card" id="replies-card">
+        <h2>Check my application</h2>
+        <p class="muted">Enter your application ID to see replies. An ICA officer reviews every application before replying.</p>
+        <div class="row">
+          <div><label for="lookup-id">Application ID</label><input id="lookup-id" type="text" size="10"></div>
+          <div><button class="btn secondary" onclick="showReplies()" style="margin-top:36px">Check replies</button></div>
+        </div>
+        <div id="replies"></div>
+      </section>
     </div>
 
-    <h3>Documents</h3>
-    <p class="muted">Children are under 14. This prototype does not take real files, so tick what you have attached.</p>
-    <div id="adult-docs">
-      <label><input id="id-card" type="checkbox"> I have attached my identity card</label>
-    </div>
-    <div id="vaccination-block" class="hidden">
-      <label><input id="birth-record" type="checkbox"> I have attached my child's birth record</label>
-      <label><input id="guardian-id" type="checkbox"> I have attached the identity card of a consenting parent or guardian</label>
-      <label><input id="vaccination" type="checkbox"> I have attached my child's vaccination details</label>
-    </div>
-
-    <h3>Photo</h3>
-    <p class="muted">The photo must be 300 to 400 pixels wide and high, under 20 MB, taken in the last 4 months,
-      on a plain light blue background, with the face and both ears visible.
-      This prototype does not take real photos, so enter the photo details instead.</p>
-    <div class="row">
-      <div><label for="photo-w">Width (pixels)</label><input id="photo-w" type="number" min="0"></div>
-      <div><label for="photo-h">Height (pixels)</label><input id="photo-h" type="number" min="0"></div>
-      <div><label for="photo-mb">File size (MB)</label><input id="photo-mb" type="number" min="0" step="0.1"></div>
-      <div>
-        <label for="photo-face">Face in the photo</label>
-        <select id="photo-face">
-          <option value="visible">Fully visible</option>
-          <option value="covered">Partly covered</option>
-          <option value="unclear">Not sure</option>
-        </select>
+    <!-- Running feedback -->
+    <aside class="side">
+      <div class="card summary">
+        <h2>Your application so far</h2>
+        <div class="big s-none" id="sum-big">Start filling in the form.</div>
+        <ul id="sum-list"></ul>
       </div>
-    </div>
-    <div class="row">
-      <div><label for="photo-months">Taken how many months ago</label><input id="photo-months" type="number" min="0"></div>
-      <div>
-        <label for="photo-bg">Background</label>
-        <select id="photo-bg">
-          <option value="light blue">Plain light blue</option>
-          <option value="white">White</option>
-          <option value="grey">Grey</option>
-          <option value="patterned">Patterned or busy</option>
-        </select>
-      </div>
-      <div>
-        <label for="photo-ears">Both ears visible</label>
-        <select id="photo-ears">
-          <option value="yes">Yes</option>
-          <option value="no">No</option>
-          <option value="unclear">Not sure</option>
-        </select>
-      </div>
-      <div>
-        <label for="photo-glasses">Glasses</label>
-        <select id="photo-glasses">
-          <option value="none">No glasses</option>
-          <option value="clear">Clear glasses</option>
-          <option value="tinted">Tinted glasses or sunglasses</option>
-          <option value="unclear">Not sure</option>
-        </select>
-      </div>
-      <div>
-        <label for="photo-headgear">Headgear</label>
-        <select id="photo-headgear">
-          <option value="none">None</option>
-          <option value="daily-face-visible">Worn every day, face fully visible</option>
-          <option value="covers-face">Covers part of the face</option>
-          <option value="not-daily">Not worn every day</option>
-          <option value="unclear">Not sure</option>
-        </select>
-      </div>
-    </div>
-
-    <button class="btn primary" onclick="submitApplication()">Submit</button>
-  </div>
-
-  <div id="check-result" class="card hidden"></div>
-
-  <div class="card">
-    <h2>Replies from ICA</h2>
-    <p class="muted">Enter your application ID to see replies. An ICA officer reviews every application before replying.</p>
-    <div class="row">
-      <div><label for="lookup-id">Application ID</label><input id="lookup-id" type="text" size="10"></div>
-      <button class="btn secondary" onclick="showReplies()">Check replies</button>
-    </div>
-    <div id="replies"></div>
+    </aside>
   </div>
 </main>
+
+<footer>Prototype for a course. Not an official ICA website. All data is made up.</footer>
 
 <script src="rules.js"></script>
 <script src="check.js"></script>
 <script src="sample-applications.js"></script>
 <script src="store.js"></script>
 <script>
-  function toggleVaccination() {
-    var child = el("applicant").value === "child";
-    el("vaccination-block").classList.toggle("hidden", !child);
-    el("adult-docs").classList.toggle("hidden", child);
-  }
+  var DOCS = ["idCard", "birthRecord", "guardianId", "vaccination"];
+  var DOC_LABELS = { idCard: "Identity card", birthRecord: "Birth record",
+    guardianId: "Parent or guardian identity card", vaccination: "Vaccination details" };
+
+  // Which step each form field belongs to.
+  var STEP_OF = { age: 1, idCard: 2, birthRecord: 2, guardianId: 2, vaccination: 2,
+    photo: 3, photoSize: 3, photoFile: 3, photoDate: 3, background: 3, face: 3, ears: 3, glasses: 3, headgear: 3 };
+
+  // Fields that get a tick when they pass.
+  var OK_TEXT = { age: "", idCard: "Attached", birthRecord: "Attached", guardianId: "Attached",
+    vaccination: "Attached", photoSize: "Size is fine", photoFile: "File size is fine", photoDate: "Recent enough",
+    background: "Background is fine", face: "Face is fine", ears: "Ears are fine", glasses: "Glasses are fine",
+    headgear: "Headgear is fine" };
 
   function newId() {
     var data = loadStore();
@@ -163,70 +266,28 @@
     return id;
   }
 
-  function fillFromSample() {
-    var idx = el("sample").value;
-    if (idx === "") { resetForm(); return; }
-    var s = SAMPLE_APPLICATIONS[idx];
-    el("app-id").value = s.id;
-    el("app-type").value = s.type;
-    el("applicant").value = s.applicant;
-    el("age").value = s.age;
-    el("id-card").checked = !!s.idCardProvided;
-    el("birth-record").checked = !!s.birthRecordProvided;
-    el("guardian-id").checked = !!s.guardianIdProvided;
-    el("vaccination").checked = !!s.vaccinationProvided;
-    el("photo-w").value = s.photo.width;
-    el("photo-h").value = s.photo.height;
-    el("photo-mb").value = s.photo.sizeMB;
-    el("photo-face").value = s.photo.face;
-    el("photo-months").value = s.photo.takenMonthsAgo;
-    el("photo-bg").value = s.photo.background;
-    el("photo-ears").value = s.photo.ears;
-    el("photo-glasses").value = s.photo.glasses;
-    el("photo-headgear").value = s.photo.headgear;
-    toggleVaccination();
-    el("check-result").classList.add("hidden");
-  }
-
-  function resetForm() {
-    el("sample").value = "";
-    el("app-id").value = newId();
-    el("app-type").value = "new";
-    el("applicant").value = "adult";
-    el("age").value = "";
-    el("id-card").checked = false;
-    el("birth-record").checked = false;
-    el("guardian-id").checked = false;
-    el("vaccination").checked = false;
-    el("photo-w").value = "";
-    el("photo-h").value = "";
-    el("photo-mb").value = "";
-    el("photo-face").value = "visible";
-    el("photo-months").value = "";
-    el("photo-bg").value = "light blue";
-    el("photo-ears").value = "yes";
-    el("photo-glasses").value = "none";
-    el("photo-headgear").value = "none";
-    toggleVaccination();
-  }
-
   function numberOrNull(id) {
     var v = el(id).value;
     return v === "" ? null : Number(v);
   }
 
+  function isChildNow() {
+    var age = numberOrNull("age");
+    return age !== null && age < PASSPORT_RULES.childUnderAge;
+  }
+
   function readForm() {
-    var applicant = el("applicant").value;
-    return {
+    var age = numberOrNull("age");
+    var child = isChildNow();
+    var app = {
       id: el("app-id").value,
       type: el("app-type").value,
-      applicant: applicant,
-      age: numberOrNull("age"),
-      idCardProvided: applicant === "adult" && el("id-card").checked,
-      birthRecordProvided: applicant === "child" && el("birth-record").checked,
-      guardianIdProvided: applicant === "child" && el("guardian-id").checked,
-      vaccinationProvided: applicant === "child" && el("vaccination").checked,
+      applicant: child ? "child" : "adult",
+      name: el("holder-name").value.trim(),
+      age: age,
+      files: {},
       photo: {
+        fileName: el("photo-name").value.trim(),
         width: numberOrNull("photo-w"),
         height: numberOrNull("photo-h"),
         sizeMB: numberOrNull("photo-mb"),
@@ -238,6 +299,163 @@
         headgear: el("photo-headgear").value
       }
     };
+    // Only the documents shown for this applicant count.
+    var shown = child ? ["birthRecord", "guardianId", "vaccination"] : ["idCard"];
+    shown.forEach(function (d) {
+      var name = el("file-" + d).value.trim();
+      if (name) app.files[d] = { name: name, sizeMB: numberOrNull("size-" + d) };
+    });
+    app.idCardProvided = !!app.files.idCard;
+    app.birthRecordProvided = !!app.files.birthRecord;
+    app.guardianIdProvided = !!app.files.guardianId;
+    app.vaccinationProvided = !!app.files.vaccination;
+    return app;
+  }
+
+  // Has the person typed anything into this step yet?
+  function stepTouched(step) {
+    if (step === 1) return el("age").value !== "" || el("holder-name").value !== "";
+    if (step === 2) return DOCS.some(function (d) { return el("file-" + d).value !== ""; });
+    if (step === 3) return ["photo-name", "photo-w", "photo-h", "photo-mb", "photo-months", "photo-bg",
+      "photo-face", "photo-ears", "photo-glasses", "photo-headgear"].some(function (i) { return el(i).value !== ""; });
+    return false;
+  }
+
+  function setState(node, prefix, state) {
+    ["ok", "fix", "check"].forEach(function (s) { node.classList.remove(prefix + s); });
+    if (state) node.classList.add(prefix + state);
+  }
+
+  // Runs on every change. Shows feedback next to each field, per step and in the summary.
+  function update() {
+    var child = isChildNow();
+    var age = numberOrNull("age");
+    el("adult-docs").classList.toggle("hidden", child);
+    el("child-docs").classList.toggle("hidden", !child);
+    el("who").textContent = age === null
+      ? "Enter the age to see which documents you need."
+      : child
+        ? "This is a child's passport (under 14). You need the child's birth record, a parent or guardian's identity card, and the child's vaccination details."
+        : "This is an adult passport (14 or over). You need the passport holder's identity card.";
+
+    var app = readForm();
+    var result = checkApplication(app, PASSPORT_RULES);
+    var byField = {};
+    result.issues.forEach(function (i) { (byField[i.field] = byField[i.field] || []).push(i); });
+
+    // Per field
+    Object.keys(OK_TEXT).forEach(function (f) {
+      var box = el("f-" + f), msg = el("m-" + f);
+      var step = STEP_OF[f];
+      var list = byField[f] || [];
+      var touched = stepTouched(step);
+      if (!touched) { setState(box, "f-", null); msg.textContent = ""; return; }
+      if (list.length) {
+        var lvl = list.some(function (i) { return i.level === "fix"; }) ? "fix" : "check";
+        setState(box, "f-", lvl);
+        msg.textContent = list.map(function (i) { return i.text; }).join(". ");
+      } else {
+        setState(box, "f-", "ok");
+        msg.textContent = OK_TEXT[f];
+      }
+    });
+
+    // Per step
+    var stepStates = {};
+    [1, 2, 3].forEach(function (s) {
+      var list = result.issues.filter(function (i) { return STEP_OF[i.field] === s; });
+      var state, text;
+      if (!stepTouched(s)) { state = null; text = "Not started"; }
+      else if (list.some(function (i) { return i.level === "fix"; })) { state = "fix"; text = list.length + " to fix"; }
+      else if (list.length) { state = "check"; text = "Needs an officer to check"; }
+      else { state = "ok"; text = "Complete"; }
+      stepStates[s] = state;
+      setState(el("status-" + s), "s-", state);
+      el("status-" + s).textContent = text;
+      setState(el("step-" + s), "s-", state);
+    });
+    var allOk = stepStates[1] === "ok" && stepStates[2] === "ok" && stepStates[3] === "ok";
+    var anyFix = [1, 2, 3].some(function (s) { return stepStates[s] === "fix"; });
+    setState(el("status-4"), "s-", allOk ? "ok" : anyFix ? "fix" : stepStates[1] ? "check" : null);
+    el("status-4").textContent = allOk ? "Ready to submit" : "Not ready";
+    setState(el("step-4"), "s-", allOk ? "ok" : null);
+
+    renderSummary(app, result, stepStates);
+  }
+
+  function renderSummary(app, result, stepStates) {
+    var big = el("sum-big"), list = el("sum-list");
+    list.innerHTML = "";
+    var started = stepTouched(1) || stepTouched(2) || stepTouched(3);
+    if (!started) {
+      big.className = "big s-none";
+      big.textContent = "Start filling in the form.";
+      return;
+    }
+    var fixes = result.issues.filter(function (i) { return i.level === "fix"; });
+    var checks = result.issues.filter(function (i) { return i.level === "check"; });
+    if (fixes.length) {
+      big.className = "big s-fix";
+      big.textContent = fixes.length + (fixes.length === 1 ? " thing" : " things") + " to fix before you submit";
+    } else if (checks.length) {
+      big.className = "big s-check";
+      big.textContent = "Nothing missing, but an officer will need to check " + checks.length +
+        (checks.length === 1 ? " thing" : " things");
+    } else {
+      big.className = "big s-ok";
+      big.textContent = "Everything we can check looks complete";
+    }
+    fixes.forEach(function (i) { list.appendChild(make("li", i.text, "fix")); });
+    checks.forEach(function (i) { list.appendChild(make("li", i.text + " (an officer will check)", "check")); });
+    if (!fixes.length && !checks.length) {
+      list.appendChild(make("li", "Passport holder: " + (result.isChild ? "child" : "adult"), "ok"));
+      Object.keys(app.files).forEach(function (d) {
+        list.appendChild(make("li", DOC_LABELS[d] + ": " + app.files[d].name, "ok"));
+      });
+      list.appendChild(make("li", "Photo: " + (app.photo.fileName || "described") + ", meets the photo rules", "ok"));
+    }
+  }
+
+  function clearForm() {
+    ["holder-name", "age", "photo-name", "photo-w", "photo-h", "photo-mb", "photo-months",
+      "photo-bg", "photo-face", "photo-ears", "photo-glasses", "photo-headgear"].forEach(function (i) { el(i).value = ""; });
+    DOCS.forEach(function (d) { el("file-" + d).value = ""; el("size-" + d).value = ""; });
+    el("app-type").value = "new";
+  }
+
+  function fillFromSample() {
+    var idx = el("sample").value;
+    if (idx === "") { resetForm(); return; }
+    var s = SAMPLE_APPLICATIONS[idx];
+    clearForm();
+    el("app-id").value = s.id;
+    el("app-type").value = s.type;
+    el("holder-name").value = s.name || "";
+    el("age").value = s.age === null || s.age === undefined ? "" : s.age;
+    DOCS.forEach(function (d) {
+      var f = (s.files || {})[d];
+      if (f) { el("file-" + d).value = f.name; el("size-" + d).value = f.sizeMB; }
+    });
+    var p = s.photo;
+    el("photo-name").value = p.fileName || "";
+    el("photo-w").value = p.width === null ? "" : p.width;
+    el("photo-h").value = p.height === null ? "" : p.height;
+    el("photo-mb").value = p.sizeMB === null ? "" : p.sizeMB;
+    el("photo-months").value = p.takenMonthsAgo === null ? "" : p.takenMonthsAgo;
+    el("photo-bg").value = p.background || "";
+    el("photo-face").value = p.face || "";
+    el("photo-ears").value = p.ears || "";
+    el("photo-glasses").value = p.glasses || "";
+    el("photo-headgear").value = p.headgear || "";
+    el("check-result").classList.add("hidden");
+    update();
+  }
+
+  function resetForm() {
+    el("sample").value = "";
+    clearForm();
+    el("app-id").value = newId();
+    update();
   }
 
   // The rules run BEFORE the application reaches an officer.
@@ -258,7 +476,7 @@
       box.appendChild(make("p", "Fixing these now avoids your application being returned, which adds about six days.", "muted"));
 
       var fix = make("button", "Go back and fix", "btn primary");
-      fix.onclick = function () { box.classList.add("hidden"); };
+      fix.onclick = function () { box.classList.add("hidden"); if (el("sec-1").scrollIntoView) el("sec-1").scrollIntoView(); };
       box.appendChild(fix);
 
       // Control: the applicant can always go past the check. An officer then reviews it by hand.
@@ -275,14 +493,16 @@
     data.queue.push({ app: app, result: result, overridden: overridden });
     saveStore(data);
 
+    var id = app.id;
+    resetForm();
     var box = el("check-result");
     box.innerHTML = "";
     box.className = "card ok";
     box.appendChild(make("h2", "Application submitted"));
-    box.appendChild(make("p", "Your application id " + app.id +
-      " has been received. An ICA officer will review it. Check \"Replies from ICA\" below with your application ID."));
-    el("lookup-id").value = app.id;
-    resetForm();
+    box.appendChild(make("p", "Your application id " + id +
+      " has been received. An ICA officer will review it. Use \"Check my application\" with your application ID."));
+    box.classList.remove("hidden");
+    el("lookup-id").value = id;
   }
 
   // The public sees only replies an officer has sent, and only for the ID they enter.
