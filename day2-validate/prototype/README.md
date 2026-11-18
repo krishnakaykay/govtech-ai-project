@@ -10,6 +10,10 @@ It tests whether an incomplete passport application can be caught before it is s
 
 This version uses plain rule checks. There is no AI yet.
 
+## Look
+
+A formal government style in navy and blue, based on the general look of ICA's website. It does not use ICA's logo or crest. Every page has a yellow bar saying it is a prototype, not an official ICA website.
+
 ## How to open it
 
 There are two pages, one for each kind of user. Open both in the same browser, side by side.
@@ -19,18 +23,26 @@ There are two pages, one for each kind of user. Open both in the same browser, s
 
 Nothing needs installing. Data stays in your browser only and is not sent anywhere. To start again, press "Clear all demo data" on the officer page.
 
-## Public page
+## Test interface (`public.html`)
 
-- Fill in an application, or pick a sample case (demo only).
-- Press Submit. If something is missing, the page lists what to fix, using the application ID only.
-- Fix it, or press "submit anyway" to send it to an officer for a manual check.
-- Under "Replies from ICA", enter the application ID to see the reply.
+A step-by-step application page, like a real online form:
+
+1. **About the passport holder.** Name and age. Under 14 counts as a child, and the page shows which documents are needed.
+2. **Supporting documents.** Adults attach an identity card. Children attach a birth record, a parent or guardian's identity card and vaccination details. Type a made-up file name in place of a real file.
+3. **Photo.** Describe the photo: size, file size, when it was taken, background, face, ears, glasses and headgear.
+4. **Review and submit.**
+
+As you type, each field shows a red, amber or green message. Each step shows its status, and a summary on the right lists everything still to fix.
+
+- Pick a sample case (demo only) to fill every field with different made-up details. Some cases attach the wrong document, such as a dental letter in the vaccination slot, to show what the rules cannot catch.
+- If you submit with something missing, the page lists what to fix. You can fix it, or "submit anyway" to send it to an officer.
+- Under "Check my application", enter the application ID to see the reply.
 
 The public never sees the system's suggestion. They only see what to fix, and replies an officer has sent.
 
 ## Officer page
 
-- The queue shows each application, what the system suggests (Approved, Escalated to officer or More info needed) and why.
+- The queue shows each application, the names of the attached files, what the system suggests (Approved, Escalated to officer or More info needed) and why.
 - It flags when an applicant overrode the check.
 - The officer approves or asks for more info. Only then is a reply sent to the applicant.
 - "Replies sent" shows what the system suggested next to what the officer decided.

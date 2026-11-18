@@ -14,14 +14,21 @@
 </head>
 <body class="officer">
 
+<div class="proto-bar"><b>Prototype for a course.</b> Not an official ICA system. All data is made up.</div>
+
 <div class="topbar">
-  <div class="brand"><span class="logo">✓</span> Passport review</div>
+  <div class="brand"><span class="logo">P</span><span>Passport Review<small>Officer workspace · Prototype v1</small></span></div>
   <span class="persona">ICA officer</span>
 </div>
+<nav class="mainnav">
+  <a class="current" href="#">Review queue</a>
+  <a href="#replies-sent">Replies sent</a>
+</nav>
 
 <header class="hero">
+  <div class="crumbs"><span>Officer workspace</span><span>Passports</span><span>Review queue</span></div>
   <h1>Passport review queue</h1>
-  <p>For ICA officers only. Prototype v1 · all data is synthetic (made up).</p>
+  <p>For ICA officers only. All data is synthetic (made up).</p>
 </header>
 
 <main>
@@ -50,7 +57,7 @@
     <div id="queue"></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="replies-sent">
     <h2>Replies sent</h2>
     <p class="muted">Each reply uses the application ID only.</p>
     <div id="outbox"></div>
@@ -63,6 +70,18 @@
 <script src="approval-test-cases.js"></script>
 <script src="store.js"></script>
 <script>
+  // What the officer sees about the attached files, for applications from the test interface.
+  var DOC_NAMES = { idCard: "Identity card", birthRecord: "Birth record",
+    guardianId: "Parent or guardian ID", vaccination: "Vaccination file" };
+  function documentsLine(a) {
+    var parts = [];
+    Object.keys(DOC_NAMES).forEach(function (d) {
+      if (a.files && a.files[d]) parts.push(DOC_NAMES[d] + ": " + a.files[d].name);
+    });
+    if (a.photo && a.photo.fileName) parts.push("Photo: " + a.photo.fileName);
+    return parts.length ? parts.join(". ") + "." : "No files attached.";
+  }
+
   function tagFor(decision) {
     var key = decision.split(" ")[0];
     return make("span", decision, "tag tag-" + key);
@@ -182,6 +201,7 @@
       who.appendChild(make("div", a.id));
       who.appendChild(make("div", (a.type === "renewal" ? "Renewal" : "New") + " · " + a.applicant, "muted"));
       if (a.officerSees) who.appendChild(make("div", a.officerSees, "docs"));
+      else if (a.files || a.photo) who.appendChild(make("div", documentsLine(a), "docs"));
       tr.appendChild(who);
 
       var sug = make("td");
