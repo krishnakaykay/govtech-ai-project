@@ -24,7 +24,7 @@ Final decisions stay with ICA officers. We cannot have fully automated approvals
 
 ### 5. Success
 
-0.5% return rate. 0% erroneous approval of applications.
+0.5% return rate. <0.0001% erroneous approval of applications.
 
 ### 6. Explore
 
@@ -38,7 +38,7 @@ Trying to learn if AI can improve efficiency
 
 ### Metrics
 
-- 0.5% return rate. 0% erroneous approval of applications.
+- 0.5% return rate. <0.0001% erroneous approval of applications.
 
 ## Hypothesis
 
