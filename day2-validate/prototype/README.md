@@ -12,13 +12,28 @@ This version uses plain rule checks. There is no AI yet.
 
 ## How to open it
 
-Double-click `index.html`. It opens in your web browser. Nothing needs installing, and nothing is saved or sent anywhere.
+There are two pages, one for each kind of user. Open both in the same browser, side by side.
 
-## The three screens
+- `public.html`: for members of the public
+- `officer.html`: for ICA officers
 
-1. **Applicant form.** Fill in an application, or pick a sample case. Press Submit. If something is missing, the page lists what to fix, using the application ID only. The applicant can fix it, or press "submit anyway" to send it to an officer.
-2. **Officer queue.** Each case shows what the system suggests (Approved, Escalated to officer or More info needed) and why. The officer decides.
-3. **Messages sent to applicants.** A message appears here only after an officer decides.
+Nothing needs installing. Data stays in your browser only and is not sent anywhere. To start again, press "Clear all demo data" on the officer page.
+
+## Public page
+
+- Fill in an application, or pick a sample case (demo only).
+- Press Submit. If something is missing, the page lists what to fix, using the application ID only.
+- Fix it, or press "submit anyway" to send it to an officer for a manual check.
+- Under "Replies from ICA", enter the application ID to see the reply.
+
+The public never sees the system's suggestion. They only see what to fix, and replies an officer has sent.
+
+## Officer page
+
+- The queue shows each application, what the system suggests (Approved, Escalated to officer or More info needed) and why.
+- It flags when an applicant overrode the check.
+- The officer approves or asks for more info. Only then is a reply sent to the applicant.
+- "Replies sent" shows what the system suggested next to what the officer decided.
 
 ## The rules
 
@@ -32,7 +47,10 @@ If the rules cannot decide, for example when it is hard to tell if the face is v
 
 ## Files
 
-- `index.html`: the three screens
+- `public.html`: the page for members of the public
+- `officer.html`: the page for ICA officers
+- `store.js`: shares applications and replies between the two pages, inside your browser
+- `style.css`: the look of both pages
 - `rules.js`: the rule numbers, in one place, so they are easy to change when ICA rules change
 - `check.js`: the rule checks and the message to the applicant
 - `sample-applications.js`: nine made-up applications, each with the suggestion it should get
