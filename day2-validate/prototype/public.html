@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<!--
+  PUBLIC PAGE: what a member of the public sees.
+  They fill in a passport application, get a pre-submit check, and read replies from ICA.
+  They never see the system's suggestion or any officer controls.
+  Plain rule checks, no AI. All data is synthetic.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Apply for or renew a passport (prototype)</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="public">
+
+<div class="topbar">
+  <div class="brand"><span class="logo">✈</span> Passport services</div>
+  <span class="persona">Test interface</span>
+</div>
+
+<header class="hero">
+  <h1>Apply for or renew your passport</h1>
+  <p>We check your application before you submit, so it is not returned for missing details.
+    Prototype v1 · all data is synthetic (made up).</p>
+</header>
+
+<main>
+  <div class="card demo">
+    <label for="sample">Fill the form from a sample case</label>
+    <select id="sample" onchange="fillFromSample()">
+      <option value="">Start blank</option>
+    </select>
+  </div>
+
+  <div class="card">
+    <h2>Your application</h2>
+    <div class="row">
+      <div>
+        <label for="app-id">Application ID</label>
+        <input id="app-id" type="text" size="10" readonly>
+      </div>
+      <div>
+        <label for="app-type">Type</label>
+        <select id="app-type">
+          <option value="new">New application</option>
+          <option value="renewal">Renewal</option>
+        </select>
+      </div>
+      <div>
+        <label for="applicant">The passport is for</label>
+        <select id="applicant" onchange="toggleVaccination()">
+          <option value="adult">Me (adult)</option>
+          <option value="child">My child</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="vaccination-block" class="hidden">
+      <label><input id="vaccination" type="checkbox"> I have attached my child's vaccination details</label>
+    </div>
+
+    <h3>Photo</h3>
+    <p class="muted">The photo must be 300 to 400 pixels wide and high, under 20 MB, with your face fully visible.
+      This prototype does not take real photos, so enter the photo details instead.</p>
+    <div class="row">
+      <div><label for="photo-w">Width (pixels)</label><input id="photo-w" type="number" min="0"></div>
+      <div><label for="photo-h">Height (pixels)</label><input id="photo-h" type="number" min="0"></div>
+      <div><label for="photo-mb">File size (MB)</label><input id="photo-mb" type="number" min="0" step="0.1"></div>
+      <div>
+        <label for="photo-face">Face in the photo</label>
+        <select id="photo-face">
+          <option value="visible">Fully visible</option>
+          <option value="covered">Partly covered</option>
+          <option value="unclear">Not sure</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn primary" onclick="submitApplication()">Submit</button>
+  </div>
+
+  <div id="check-result" class="card hidden"></div>
+
+  <div class="card">
+    <h2>Replies from ICA</h2>
+    <p class="muted">Enter your application ID to see replies. An ICA officer reviews every application before replying.</p>
+    <div class="row">
+      <div><label for="lookup-id">Application ID</label><input id="lookup-id" type="text" size="10"></div>
+      <button class="btn secondary" onclick="showReplies()">Check replies</button>
+    </div>
+    <div id="replies"></div>
+  </div>
+</main>
+
+<script src="rules.js"></script>
+<script src="check.js"></script>
+<script src="sample-applications.js"></script>
+<script src="store.js"></script>
+<script>
+  function toggleVaccination() {
+    el("vaccination-block").classList.toggle("hidden", el("applicant").value !== "child");
+  }
+
+  function newId() {
+    var data = loadStore();
+    var id = "ICA" + data.nextId;
+    data.nextId++;
+    saveStore(data);
+    return id;
+  }
+
+  function fillFromSample() {
+    var idx = el("sample").value;
+    if (idx === "") { resetForm(); return; }
+    var s = SAMPLE_APPLICATIONS[idx];
+    el("app-id").value = s.id;
+    el("app-type").value = s.type;
+    el("applicant").value = s.applicant;
+    el("vaccination").checked = s.vaccinationProvided;
+    el("photo-w").value = s.photo.width;
+    el("photo-h").value = s.photo.height;
+    el("photo-mb").value = s.photo.sizeMB;
+    el("photo-face").value = s.photo.face;
+    toggleVaccination();
+    el("check-result").classList.add("hidden");
+  }
+
+  function resetForm() {
+    el("sample").value = "";
+    el("app-id").value = newId();
+    el("app-type").value = "new";
+    el("applicant").value = "adult";
+    el("vaccination").checked = false;
+    el("photo-w").value = "";
+    el("photo-h").value = "";
+    el("photo-mb").value = "";
+    el("photo-face").value = "visible";
+    toggleVaccination();
+  }
+
+  function numberOrNull(id) {
+    var v = el(id).value;
+    return v === "" ? null : Number(v);
+  }
+
+  function readForm() {
+    var applicant = el("applicant").value;
+    return {
+      id: el("app-id").value,
+      type: el("app-type").value,
+      applicant: applicant,
+      vaccinationProvided: applicant === "child" && el("vaccination").checked,
+      photo: {
+        width: numberOrNull("photo-w"),
+        height: numberOrNull("photo-h"),
+        sizeMB: numberOrNull("photo-mb"),
+        face: el("photo-face").value
+      }
+    };
+  }
+
+  // The rules run BEFORE the application reaches an officer.
+  // The public only sees what to fix. They never see "Approved" or "Escalated" from the system.
+  function submitApplication() {
+    var app = readForm();
+    var result = checkApplication(app, PASSPORT_RULES);
+    var box = el("check-result");
+    box.innerHTML = "";
+    box.classList.remove("hidden");
+
+    if (result.suggestion === DECISIONS.MORE_INFO) {
+      box.className = "card warn";
+      box.appendChild(make("h2", "Before you submit, please check these details"));
+      var lines = result.required.map(function (d, i) { return (i + 1) + ". " + d; });
+      box.appendChild(make("div", "For your application id " + app.id +
+        ", the following details are required:\n" + lines.join("\n"), "msg"));
+      box.appendChild(make("p", "Fixing these now avoids your application being returned, which adds about six days.", "muted"));
+
+      var fix = make("button", "Go back and fix", "btn primary");
+      fix.onclick = function () { box.classList.add("hidden"); };
+      box.appendChild(fix);
+
+      // Control: the applicant can always go past the check. An officer then reviews it by hand.
+      var override = make("button", "I think this is wrong: submit anyway for an officer to check", "btn secondary");
+      override.onclick = function () { sendToOfficer(app, result, true); };
+      box.appendChild(override);
+      return;
+    }
+    sendToOfficer(app, result, false);
+  }
+
+  function sendToOfficer(app, result, overridden) {
+    var data = loadStore();
+    data.queue.push({ app: app, result: result, overridden: overridden });
+    saveStore(data);
+
+    var box = el("check-result");
+    box.innerHTML = "";
+    box.className = "card ok";
+    box.appendChild(make("h2", "Application submitted"));
+    box.appendChild(make("p", "Your application id " + app.id +
+      " has been received. An ICA officer will review it. Check \"Replies from ICA\" below with your application ID."));
+    el("lookup-id").value = app.id;
+    resetForm();
+  }
+
+  // The public sees only replies an officer has sent, and only for the ID they enter.
+  function showReplies() {
+    var id = el("lookup-id").value.trim().toUpperCase();
+    var holder = el("replies");
+    holder.innerHTML = "";
+    if (!id) return;
+    var data = loadStore();
+    var mine = data.outbox.filter(function (m) { return m.id === id; });
+    if (mine.length === 0) {
+      var waiting = data.queue.some(function (q) { return q.app.id === id; });
+      holder.appendChild(make("p", waiting
+        ? "Your application is waiting for an ICA officer. There is no reply yet."
+        : "No application found with that ID.", "muted"));
+      return;
+    }
+    mine.forEach(function (m) { holder.appendChild(make("div", m.text, "msg")); });
+  }
+
+  // Start up.
+  SAMPLE_APPLICATIONS.forEach(function (s, i) {
+    var opt = make("option", s.id + ": " + s.note);
+    opt.value = i;
+    el("sample").appendChild(opt);
+  });
+  resetForm();
+</script>
+</body>
+</html>

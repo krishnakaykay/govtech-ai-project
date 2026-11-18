@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<!--
+  OFFICER PAGE: what an ICA officer sees.
+  Officers see each application, what the system suggests and why, and make the final decision.
+  A reply reaches the applicant only after an officer decides.
+  Plain rule checks, no AI. All data is synthetic.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ICA officer review queue (prototype)</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="officer">
+
+<div class="topbar">
+  <div class="brand"><span class="logo">✓</span> Passport review</div>
+  <span class="persona">ICA officer</span>
+</div>
+
+<header class="hero">
+  <h1>Passport review queue</h1>
+  <p>For ICA officers only. Prototype v1 · all data is synthetic (made up).</p>
+</header>
+
+<main>
+  <div class="banner">
+    The system only <b>suggests</b>. You make the final decision.
+    Nothing is sent to an applicant until you act.
+  </div>
+
+  <div class="card demo">
+    <button class="btn secondary" onclick="loadAllSamples()">Add all sample cases to the queue</button>
+    <button class="btn secondary" onclick="resetDemo()">Clear all demo data</button>
+  </div>
+
+  <div class="card">
+    <h2>Waiting for a decision <span id="queue-count"></span></h2>
+    <button class="btn secondary" onclick="render()">Refresh</button>
+    <div id="queue"></div>
+  </div>
+
+  <div class="card">
+    <h2>Replies sent</h2>
+    <p class="muted">Each reply uses the application ID only.</p>
+    <div id="outbox"></div>
+  </div>
+</main>
+
+<script src="rules.js"></script>
+<script src="check.js"></script>
+<script src="sample-applications.js"></script>
+<script src="store.js"></script>
+<script>
+  function tagFor(decision) {
+    var key = decision.split(" ")[0];
+    return make("span", decision, "tag tag-" + key);
+  }
+
+  function loadAllSamples() {
+    var data = loadStore();
+    SAMPLE_APPLICATIONS.forEach(function (s) {
+      var app = JSON.parse(JSON.stringify(s));
+      data.queue.push({ app: app, result: checkApplication(app, PASSPORT_RULES), overridden: false });
+    });
+    saveStore(data);
+    render();
+  }
+
+  function resetDemo() {
+    if (!window.confirm("Clear all demo applications and replies?")) return;
+    clearStore();
+    render();
+  }
+
+  // The officer's choice is final. Only now is a reply sent to the applicant.
+  function officerDecides(index, decision) {
+    var data = loadStore();
+    var item = data.queue[index];
+    if (!item) return;
+    var details = item.result.required.concat(item.result.unclear);
+    if (decision === DECISIONS.MORE_INFO) {
+      // Reword "rules cannot tell" into a plain request before it goes to the applicant.
+      details = details.map(function (d) {
+        return d.indexOf("cannot tell if the face") >= 0 ? "A photo where the face is fully visible" : d;
+      });
+      if (details.length === 0) {
+        var typed = window.prompt("What details are required? (Do not type personal details.)");
+        if (!typed) return;
+        details = [typed];
+      }
+    }
+    data.outbox.unshift({
+      id: item.app.id,
+      suggestion: item.result.suggestion,
+      decision: decision,
+      text: applicantMessage(item.app.id, decision, details)
+    });
+    data.queue.splice(index, 1);
+    saveStore(data);
+    render();
+  }
+
+  function renderQueue(data) {
+    el("queue-count").textContent = data.queue.length ? "(" + data.queue.length + ")" : "";
+    var holder = el("queue");
+    holder.innerHTML = "";
+    if (data.queue.length === 0) {
+      holder.appendChild(make("p", "No applications waiting.", "muted"));
+      return;
+    }
+    var table = make("table");
+    var head = make("tr");
+    ["Application", "System suggests", "Why", "Your decision"].forEach(function (h) { head.appendChild(make("th", h)); });
+    table.appendChild(head);
+
+    data.queue.forEach(function (item, i) {
+      var tr = make("tr");
+      var a = item.app;
+
+      var who = make("td");
+      who.appendChild(make("div", a.id));
+      who.appendChild(make("div", (a.type === "renewal" ? "Renewal" : "New") + " · " + a.applicant, "muted"));
+      tr.appendChild(who);
+
+      var sug = make("td");
+      sug.appendChild(tagFor(item.result.suggestion));
+      if (item.overridden) {
+        sug.appendChild(make("br"));
+        sug.appendChild(make("span", "Applicant overrode the check", "tag tag-override"));
+      }
+      tr.appendChild(sug);
+
+      var why = make("td");
+      var reasons = item.result.required.concat(item.result.unclear);
+      if (reasons.length === 0) why.appendChild(make("span", "All rules met", "muted"));
+      else {
+        var ul = make("ul");
+        reasons.forEach(function (r) { ul.appendChild(make("li", r)); });
+        why.appendChild(ul);
+      }
+      tr.appendChild(why);
+
+      var act = make("td");
+      var approve = make("button", "Approve application", "btn primary");
+      approve.onclick = function () { officerDecides(i, DECISIONS.APPROVED); };
+      var ask = make("button", "Ask for more info", "btn secondary");
+      ask.onclick = function () { officerDecides(i, DECISIONS.MORE_INFO); };
+      act.appendChild(approve);
+      act.appendChild(ask);
+      tr.appendChild(act);
+
+      table.appendChild(tr);
+    });
+    holder.appendChild(table);
+  }
+
+  function renderOutbox(data) {
+    var holder = el("outbox");
+    holder.innerHTML = "";
+    if (data.outbox.length === 0) {
+      holder.appendChild(make("p", "No replies sent yet.", "muted"));
+      return;
+    }
+    data.outbox.forEach(function (m) {
+      var card = make("div");
+      card.style.marginBottom = "14px";
+      var line = make("p", "", "muted");
+      line.appendChild(document.createTextNode("System suggested "));
+      line.appendChild(tagFor(m.suggestion));
+      line.appendChild(document.createTextNode("  ·  Officer decided "));
+      line.appendChild(tagFor(m.decision));
+      card.appendChild(line);
+      card.appendChild(make("div", m.text, "msg"));
+      holder.appendChild(card);
+    });
+  }
+
+  function render() {
+    var data = loadStore();
+    renderQueue(data);
+    renderOutbox(data);
+  }
+
+  // Update automatically when the public page submits in another tab.
+  window.addEventListener("storage", function (e) { if (e.key === STORE_KEY || e.key === null) render(); });
+  render();
+</script>
+</body>
+</html>
