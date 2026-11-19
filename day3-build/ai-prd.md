@@ -4,6 +4,8 @@
 
 **Status: draft.** Everything marked **Proposed** is a suggestion for the group to decide. Nothing in this file is decided yet unless it says so.
 
+**Reviewed by the engineering lead (role-play), 2026-11-19.** Their review added "Data the agent works with", "Acceptance tests", more points in "What engineering decides", and Open decisions 11 to 18.
+
 All data and examples are synthetic (made up).
 
 **Sources:** `day2-validate/living-prd.md`, `day3-build/CLAUDE.md` and `day3-build/agent-run-log.md`. Three named sources were not found: `SCENARIO-PICK.md`, `day2-validate/handoff-note.md` and `day3-build/agent-control-panel.md`. The closest are blank templates in `10-production-spec/` and `04-agent/`. Where those files would have said something, this draft marks it as an open decision.
@@ -51,6 +53,69 @@ The agent's full instructions are in `day3-build/CLAUDE.md`. In short:
 | Add to officer queue | Puts the case and the agent's work in front of an officer | Prototype only, one browser |
 | Write log | Records what was done | **No.** Written by hand in the run log |
 | Flag to a person | Tells a named role when a run stops | **No** |
+
+## Data the agent works with
+
+Filled in from the real prototype code (`day2-validate/prototype/`). All examples are made up.
+
+**Input: one application**
+
+| Field | Type | Example | Notes |
+|---|---|---|---|
+| `id` | text | ICA8001 | Given out in order today. Must become unguessable (see What engineering decides) |
+| `type` | `new` or `renewal` | renewal | |
+| `age` | whole number, 0 to 120 | 36 | Under 14 is a child |
+| `applicant` | `adult` or `child` | adult | Worked out from `age`. Only used if `age` is blank |
+| `name` | text | Alex Example | Collected but never used. See Open decisions |
+| `files` | one entry per document: `idCard`, `birthRecord`, `guardianId`, `vaccination` | `idCard`: `identity_card.pdf`, 0.8 MB | Each has a file name and size. No contents today |
+| `photo.width`, `photo.height` | pixels | 350, 360 | |
+| `photo.sizeMB` | number | 2.4 | |
+| `photo.takenMonthsAgo` | whole number | 2 | |
+| `photo.background` | `light blue`, `white`, `grey`, `patterned` | light blue | |
+| `photo.face` | `visible`, `covered`, `unclear` | visible | Typed by the applicant today |
+| `photo.ears` | `yes`, `no`, `unclear` | yes | Typed by the applicant today |
+| `photo.glasses` | `none`, `clear`, `tinted`, `unclear` | clear | Typed by the applicant today |
+| `photo.headgear` | `none`, `daily-face-visible`, `covers-face`, `not-daily`, `unclear` | none | Typed by the applicant today |
+| `overridden` | yes or no | no | Applicant pressed "submit anyway" |
+| Document description | text | "a dental check-up letter" | **Does not exist yet.** Made up in test cases only. See Open decisions |
+
+**Output: what the agent puts in the officer queue**
+
+| Field | Example |
+|---|---|
+| Application ID | ICA8002 |
+| Rule check result | Approved |
+| Agent's suggestion | Escalated to officer |
+| Reasons, each linked to a field | `vaccination`: "File does not match what was typed" |
+| Note to the officer | "Vaccination box ticked, but the attached file looks like a dental check-up letter." |
+| Draft reply, or none | "Decision: More info needed. For your application id ICA8002…" |
+| Flags | submit anyway: no · escalated: yes |
+| Rule file version | 2026-11-18 |
+
+**The agent's suggestion can differ from the rule check.** The rule check can say Approved while the agent escalates, as in Runs 1 (rerun) and 2. Both are stored, so officers and the log can see when the agent overruled the rules.
+
+**Order the agent decides in:**
+
+1. Run the rule check.
+2. If the result is Escalated, keep it.
+3. If the result is More info needed, keep it.
+4. If the result is Approved, check every document against the how-to rules. If any document is a mismatch, file name only, or unclear, change the suggestion to Escalated. Otherwise keep Approved.
+
+The agent can only make a suggestion stricter, never looser. It never turns More info needed or Escalated into Approved.
+
+## Acceptance tests
+
+Engineering can treat these as done when all pass. All cases are made up.
+
+| Test | Source | Pass when |
+|---|---|---|
+| 12 sample cases | `test-check.js` | Every case gets its expected rule check result |
+| False approvals, rules | `test-false-approvals.js` | 0 wrong Approved on cases the rules can see, 0 good cases held back |
+| Unhappy path | `test-unhappy-path.js` | 16 of 16 checks pass |
+| Agent runs | `agent-run-log.md` | ICA8001 escalated (file name only), ICA8002 escalated (mismatch), ICA8003 refused |
+| Untrue answers | the 20 "Wrong self-report" cases in `approval-test-cases.js` | The agent suggests Approved for 0 of 20. **Not run yet**, because the agent is not built |
+| Privacy | ID-guessing test | A stranger can read 0 of 20 replies. **Fails today** (20 of 20) |
+| Never logged | Log review | No name, age, ID number, file contents or reply text in any log line |
 
 ## Context and memory
 
@@ -195,6 +260,9 @@ These are technical choices for the engineering team, within the limits above:
 - **The log.** Where it is stored, for how long, and who can read it.
 - **Rules in one place.** How the help text, the rules check and the agent all read the same rules.
 - **Failure handling.** Retries, alerts and monitoring when a save fails or the system is down.
+- **Trigger.** When the agent runs: on every submit is the starting point, since every case must reach an officer. Engineering decides how it is queued and how many run at once.
+- **Speed and volume.** Plan for about 520,000 applications a year, roughly 10,000 a week. Engineering sets the response-time and capacity targets, unless the group sets one (see Open decisions).
+- **Versioning.** How each rule file version is labelled, so every log line can say which rules were used.
 
 ## Open decisions
 
@@ -210,3 +278,19 @@ For the group. None of these is decided.
 8. **Whether to collect the applicant's name at all,** given it is stored but never used (the [surprise] note in `living-prd.md`).
 9. **Continue, pivot or stop,** after the officer test is run with people.
 10. **Course fit.** The closest course case, "Application helper", does not allow submitting or approving. Check with the instructor.
+
+**Added after the engineering lead's review.** These block building and are not decided:
+
+11. **Where document descriptions come from.** The agent must not trust a file name, but nothing yet produces a description of what is inside a file. Options:
+    - an officer writes one
+    - an AI model reads the file
+    - a document service checks it
+
+    Each changes what gets built.
+12. **Is an AI model in scope for v1?** The Tools table assumes the agent reads documents. Without a model, or an officer writing descriptions, every case is escalated.
+13. **What the agent does when the rule check and the documents disagree,** beyond escalating. For example, should the note to the officer always name the field?
+14. **How long logs and applications are kept, and who can read them.** The PRD says what is never logged, but not how long the rest is kept.
+15. **Who owns the agent once it is live.** Who watches the log, who is told when the kill switch fires, and who can turn the agent off.
+16. **How fast a suggestion must be ready.** For example, before an officer opens the case, or within a set time of submitting.
+17. **Whether "confirm" is used for any action.** No action is proposed as confirm today. The group may want some, such as reading sensitive documents.
+18. **What counts as a wrong approval in live use,** and who records it. The kill switch needs a way to find wrong approvals after the fact.
