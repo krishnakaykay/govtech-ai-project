@@ -5,6 +5,10 @@
 // The group's own rules (from day1-discover-define/skill-file.md) are added on top.
 
 var PASSPORT_RULES = {
+  // Made-up rulebook: the only application types these rules cover.
+  // Any other type (such as a lost or damaged passport) is escalated to an officer.
+  allowedTypes: ["new", "renewal"],
+
   // Made-up rulebook: a passport holder under this age is a child.
   childUnderAge: 14,
 

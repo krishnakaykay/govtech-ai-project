@@ -43,6 +43,10 @@ From `day1-discover-define/skill-file.md`, unchanged:
 2. The photo should be 300 to 400 pixels. The file is under 20 MB.
 3. In the photo, the face should be visible.
 
+## Application types covered
+
+These rules cover only two types: a **new passport** and a **renewal**. Any other type, such as a replacement for a lost or damaged passport, is not covered and goes to an officer.
+
 ## When the rules do not decide
 
 - If it is not clear whether a rule is met, escalate to an officer.
