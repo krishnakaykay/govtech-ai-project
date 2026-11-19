@@ -73,9 +73,53 @@ Use case: Scenario B · ICA passport applications. All data is synthetic (made u
 
 ## Roles and operating model
 
+From `day3-build/operating-model.md`. Roles only, no names. **All Proposed** for the group to confirm.
+
+**Who decides**
+
+| Decision | Who decides | Who is consulted | Who is told |
+|---|---|---|---|
+| Scope | Product owner | Passport policy team, frontline operations director, engineering lead, data protection officer | Officers, service desk |
+| Permissions | Product owner, with data protection officer sign-off for anything that reads personal data | Engineering lead, security lead, frontline operations director | Officers, agent owner |
+| Vendor and model | Chief executive sponsor, on the engineering lead's recommendation | Security lead, data protection officer, procurement, product owner | Agent owner, officers |
+| Go-live | Chief executive sponsor | Product owner, frontline operations director, engineering lead, security lead, data protection officer | Officers, service desk, public communications |
+| Incident | Duty officer switches the agent off at once. Frontline operations director decides when it comes back | Engineering lead, product owner, data protection officer, security lead | Chief executive sponsor, officers, service desk |
+| Retire | Chief executive sponsor | Product owner, frontline operations director, engineering lead, passport policy team | Officers, service desk, public communications |
+
+**Key roles**
+
 - **ICA officers:** make every final decision. Nothing reaches the applicant until an officer acts.
-- **System:** only suggests, and shows why.
-- **Rules owner:** the ICA passport policy team (a role, to be confirmed in class). Keeps the rules, the rulebook and `rules.js` the same.
+- **System (the agent):** only suggests, and shows why.
+- **Chief executive sponsor:** the business owner. Owns the outcome and the risk.
+- **Product owner:** owns what the agent does, its permissions and the PRD.
+- **Frontline operations director:** runs the officers, and decides when the agent comes back after an incident.
+- **Passport policy team:** owns the rules, the rulebook and `rules.js`, and signs off every rule change.
+- **Engineering lead:** builds and runs the agent, and recommends the vendor and model.
+- **Agent owner:** watches the log day to day, and helps find the cause of an incident.
+- **Duty officer:** on call whenever the agent runs, including before and after office hours. Takes charge of an incident.
+- **Data protection officer and security lead:** check personal data, access and misuse.
+
+**If something goes wrong**
+
+1. The **duty officer** acts first and switches the agent off within 15 minutes, without needing permission.
+2. The duty officer tells the **chief executive sponsor** within 30 minutes.
+3. While the agent is off, officers work as they did before it existed. An officer sends the applicant a correct reply.
+4. The **frontline operations director** decides when the agent comes back, once the cause is found and the tests pass.
+
+**Ground rules**
+
+- The kill switch never waits for a meeting.
+- A rule change is not a scope change.
+- Nobody approves their own change.
+
+**Still open:**
+
+- whether one person can hold two roles
+- who the agent owner and duty officer are
+- the 15- and 30-minute limits
+- whether the agent runs outside office hours
+
+See `day3-build/operating-model.md` for the full list.
 
 ## Strategy and roadmap
 
