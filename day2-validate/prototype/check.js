@@ -33,6 +33,14 @@ function checkApplication(app, rules) {
     issues.push({ field: field, text: forApplicant, level: "check" });
   }
 
+  // Application type (made-up rulebook). Only the listed types are covered.
+  if (isBlank(app.type)) {
+    need("type", "Whether this is a new passport or a renewal");
+  } else if (rules.allowedTypes && rules.allowedTypes.indexOf(app.type) < 0) {
+    notSure("type", "The rules do not cover this type of application (" + app.type + ")",
+      "An officer will tell you what is needed for this type of application");
+  }
+
   // Who counts as a child (made-up rulebook).
   var isChild;
   if (isNumber(app.age) && (app.age < 0 || app.age > 120 || Math.floor(app.age) !== app.age)) {
@@ -41,7 +49,7 @@ function checkApplication(app, rules) {
   } else if (isNumber(app.age)) {
     isChild = app.age < rules.childUnderAge;
   } else {
-    need("age", "The date of birth of the passport holder");
+    need("age", "The age of the passport holder");
     isChild = app.applicant === "child";
   }
 
