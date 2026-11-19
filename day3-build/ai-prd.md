@@ -271,6 +271,10 @@ For the group. None of these is decided.
 1. **Every permission setting in the table above.** All are Proposed.
 2. **What happens to a refused request** like ICA8003. Should it stop the run and wait for a person, as `CLAUDE.md` says today? Or should it go to the officer queue with a flag, so the applicant is not delayed?
 3. **Whether the agent drafts a reply when it suggests Approved,** or leaves that reply entirely to the officer.
+   - **Business owner's position (role-play, 2026-11-19): will not sign "Draft reply: auto" as proposed.** A ready-made "Your application has been approved" next to an "Approved" suggestion turns the officer's decision into one click. The officer test showed that an officer who approves without reading lets 10 of 10 bad cases through, and the incident drill shows a sent reply means a control has already failed. A wrong approval is the kill switch, and the business owner answers for it.
+   - **What the business owner would sign:** no agent draft when the suggestion is Approved, or "confirm", where the officer writes or asks for the approval reply after checking the documents. Drafts for More info needed can stay auto.
+   - **Who decides:** the product owner, under the decision rights in `operating-model.md`. The business owner is asking, not deciding.
+   - **Before deciding, measure:** run the officer test twice, once with an approval draft shown and once without, and compare how many bad cases get through.
 4. **What counts as a description of a document** that the applicant did not write. Until this is decided, the agent escalates every case.
 5. **Whether officers get Escalate and Reject actions.** Today they can only Approve or Ask for more info.
 6. **Which real rules replace the made-up rulebook,** and who confirms them.
