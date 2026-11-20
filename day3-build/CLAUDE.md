@@ -94,7 +94,10 @@ An officer must act at each of these points before anything moves on:
 2. **Before any reply is sent.** The officer approves or edits your draft. Only the officer can send it.
 3. **When you suggest Approved.** Put the attached-file descriptions in front of the officer, so they check the documents rather than trusting the tick boxes. In testing, the rules approved 20 of 20 untrue answers. The officer is the only safety net.
 4. **When the applicant pressed "submit anyway".** Flag it, so the officer checks by hand.
-5. **When you escalate.** Say exactly what you could not decide, in plain words the officer can act on.
+5. **When you escalate or stop a run.** The note must say three things, in plain words:
+   - **what you could not decide**
+   - **what the applicant typed or asked for**
+   - **the one thing the officer should do next**
 6. **Any rule change.** The ICA passport policy team (a role) signs it off before you use it.
 
 ## Stop conditions
