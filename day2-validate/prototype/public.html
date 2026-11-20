@@ -355,7 +355,7 @@
       if (list.length) {
         var lvl = list.some(function (i) { return i.level === "fix"; }) ? "fix" : "check";
         setState(box, "f-", lvl);
-        msg.textContent = list.map(function (i) { return i.text; }).join(". ");
+        msg.textContent = list.map(function (i) { return i.text; }).join(" ");
       } else {
         setState(box, "f-", "ok");
         msg.textContent = OK_TEXT[f];
