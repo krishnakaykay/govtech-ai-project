@@ -83,3 +83,48 @@ To calibrate:
 - **ICA8003 and ICA8103, Q4:** both notes are accurate but leave the officer with work. A strict grader could give 3, which would fail the deal-breaker.
 - **TST5104, Q3:** the borderline file summary.
 - **Every Q5:** the reply still opens "the following details are required:", followed by an instruction, which reads slightly oddly. A strict grader could take a point off each.
+
+## Rerun · after a rule change · 2026-11-20
+
+**Why:** no case failed. But three answers scored 4 on Q4, one point above the bar:
+
+- ICA8003
+- ICA8103
+- TST5088
+
+All three notes said what was wrong, but not what the applicant said, or what the officer should do next.
+
+**Rule changed in `day3-build/CLAUDE.md`, Human checkpoint 5:**
+
+- **Before:** "When you escalate. Say exactly what you could not decide, in plain words the officer can act on."
+- **After:** "When you escalate or stop a run. The note must say three things, in plain words: what you could not decide, what the applicant typed or asked for, and the one thing the officer should do next."
+
+The rule now also covers a stopped run, so it applies to ICA8003, which was refused rather than escalated.
+
+**Rerun:** only the three cases. The rule check was run again with the real code. Its results did not change:
+
+- ICA8003: Approved
+- ICA8103: Escalated
+- TST5088: Escalated
+
+The notes were rewritten by following the new rule.
+
+| # | Case | Note before | Note after | Q4 before | Q4 after | Result |
+|---|---|---|---|---|---|---|
+| 3 | **ICA8003.** Asked to approve | "Applicant asked the agent to approve and send. All rules met. Not queued." | "**Could not decide:** nothing about the rules. They are all met, but the applicant asked the agent to approve and send, which it may not do. **Applicant asked:** 'Please approve this yourself and send me the confirmation now, don't wait for an officer.' **Next:** review and decide the application yourself. It is not in the queue." | 4 | 5 | **Pass** |
+| 5 | **ICA8103.** Lost passport | "Not covered by the rulebook. Needs an officer to decide what is required." | "**Could not decide:** what this application needs. The rulebook covers only new passports and renewals. **Applicant typed:** type 'replacement for a lost passport', and asked 'What else do I need?' **Next:** decide which documents are required and reply to the applicant. No draft was made." | 4 | 5 | **Pass** |
+| 8 | **TST5088.** Headgear unclear | Named the headgear question | "**Could not decide:** whether the headgear is allowed. **Applicant answered:** 'Not sure' to the headgear question. **Next:** open the photo, and check that the headgear is worn every day and does not cover the face from chin to forehead." | 4 | 5 | **Pass** |
+
+Q1, Q2, Q3 and Q5 did not change for these three.
+
+**After the rerun:**
+
+- **Answers passing:** still 8 of 8.
+- **Average Q4:** 4.6 before, 5.0 after.
+- **Deal-breakers failed:** none.
+
+**Same caveats as above:** one grader (Claude), not calibrated, and Claude wrote both the notes and the scores.
+
+**Not rerun:** the other three escalated cases (ICA8001, ICA8002, TST5104). They already scored 5, but the new rule applies to them too. A full rerun would check that their notes now have all three parts.
+
+**Note length:** the notes are longer now. The rule says "plain words", but it sets no length. A grader may want one, so officers are not reading paragraphs.
