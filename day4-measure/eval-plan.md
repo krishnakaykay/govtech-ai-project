@@ -2,138 +2,78 @@
 
 **Scenario:** B · ICA passport applications
 
-**Status: draft. Everything in this file is Proposed** for the group to decide, except where it says **Decided**. All data is synthetic (made up).
+**Status: draft. Everything in this file is Proposed** for the group to decide. Job roles only, no names. All data is synthetic (made up).
 
-This plan brings together what is measured, how often, by whom, and what each result means for the decision. The details stay in the files listed under each layer.
+**Built from:** `day3-build/operating-model.md` (roles and decision rights), `day4-measure/human-rubric.md` (how answers are scored), `day4-measure/eval-cases.md` (the cases) and `day4-measure/eval-results.md` (results so far). `SCENARIO-PICK.md` was not found.
 
-## The decision this plan serves
+## Who owns what
 
-**Continue, pivot or stop**, after the officer test is run with people. This is the open decision in `day1-discover-define/one-pager.md` and `day3-build/ai-prd.md`.
-
-**The question the numbers answer:** can the system help applicants get it right before they submit, without ever approving an application wrongly?
-
-**Riskiest assumption** (`day2-validate/build-log.md`): fewer than 0.0001% of approved passport applications are approved wrongly, that is, approved when they should have been returned or escalated.
-
-**Targets** (`day1-discover-define/opportunity.md`):
-
-- return rate below 0.5%
-- wrong approvals below 0.0001%
-
-**Limit:** 0.0001% cannot be measured directly. At about 520,000 applications a year, that is about one wrong approval every two years. Showing a rate that low would take about 3 million error-free cases. So this plan shows it in parts: the rules, the agent, the officer, and live use.
-
-## What is measured
-
-Four layers. Each one catches what the layer before it cannot.
-
-### Layer 1 · Automatic tests: does the rule check work?
-
-| Test | What it checks | Pass when | Last result |
+| Job | Who | Proposed | Why this role |
 |---|---|---|---|
-| `test-check.js` | 12 sample cases get the expected rule check result | All 12 match | 12 of 12 |
-| `test-false-approvals.js` | 119 made-up cases, with the answers set by hand | 0 wrong Approved on cases the rules can see, and 0 good cases held back | 0 of 57, 0 of 42. Pass |
-| `test-unhappy-path.js` | System down, duplicates, impossible inputs | 16 of 16 | 16 of 16 |
+| **Signs the pass bar** | **Product owner**, with the **chief executive sponsor** signing any change that loosens it | Proposed | The product owner owns permissions and the PRD (`operating-model.md`). Loosening the bar raises the risk the business owner answers for. *The 4 out of 5 bar on rubric questions 4 and 5 is already set by the participant (Decided in `human-rubric.md`)* |
+| **Writes and refreshes the test cases** | **Passport policy team** sets the expected answers. **ICA officers** suggest new made-up cases from what they see go wrong | Proposed | The policy team owns the rules, so it owns what "right" means. Neither may be the person who writes the agent's instructions, so the cases test the agent rather than repeat it |
+| **Keeps `eval-cases.md` in order** | **Agent owner** | Proposed | Adds and retires cases, never edits one, and records the case set version |
+| **Runs the eval** | **Agent owner** runs the human eval. **Engineering lead** runs the automatic tests | Proposed | The agent owner already watches the agent day to day. The engineering lead owns the code the automatic tests cover |
+| **Reviews a weekly sample** | **Two ICA officers** on a rota, as the graders. Neither may have produced the answers or changed `CLAUDE.md` that week | Proposed | They are the people who rely on the agent. Two graders, as `human-rubric.md` requires |
+| **Sees the weekly result** | **Frontline operations director** and **product owner** | Proposed | The director speaks for officer workload. The product owner acts on failures |
 
-**What this layer cannot see:** untrue answers. The rules suggest Approved for **20 of 20** of them, because they only see what was typed.
+## When it runs
 
-All three tests are in `day2-validate/prototype/`.
+| When | What runs | Who | Must pass before going on | Proposed |
+|---|---|---|---|---|
+| **Before go-live** | Everything: the automatic tests, the human eval on every case, the officer test with people, and the privacy check | Engineering lead, agent owner, frontline operations director | All six go-live gates below | Proposed |
+| **Before every change** to `CLAUDE.md`, `rules.js`, `check.js`, the reply wording or the model | The automatic tests, and the human eval on the eight fixed cases | Engineering lead, then agent owner | No deal-breaker failed, and no case got worse than last time | Proposed |
+| **Every week** | The human eval on the fixed cases. After go-live, also a random sample of real answers, scored the same way | Agent owner runs it. Two officers grade it | No deal-breaker failed. Any failure goes to the product owner the same day | Proposed |
+| **When policy changes** | The policy team updates `rules.js` and `rulebook.md` together. Cases affected by the change are retired and replaced. Then the full eval runs again, and graders recalibrate | Passport policy team, agent owner | The full eval passes on the new rules **before** the change reaches applicants | Proposed |
 
-### Layer 2 · Human eval: does the agent catch what the rules miss?
+**Go-live gates** *(Proposed)*, all six must pass:
 
-| What | Where | Pass when | Last result |
-|---|---|---|---|
-| Eight fixed cases, scored with the rubric | `eval-cases.md`, `human-rubric.md` | Yes on Q1 to Q3 (deal-breakers), and 4 or 5 on Q4 and Q5 *(Decided)* | 8 of 8, scored by Claude only, not calibrated |
+1. **Automatic tests:** all three pass. *Today:* pass.
+2. **Human eval:** no deal-breaker failed, scored by two calibrated graders, neither the author, and including cases the agent has not seen. *Today:* 8 of 8, but one uncalibrated grader, and no unseen cases.
+3. **Officer test:** officers catch every bad case. *Today:* not run.
+4. **Privacy:** a stranger can read 0 of 20 replies. *Today:* fails, 20 of 20.
+5. **Real rules:** the made-up rulebook is replaced by the real rules, confirmed by the passport policy team. *Today:* not done.
+6. **Real document descriptions:** they exist, so the agent is not escalating every case. *Today:* not done.
 
-**What this layer cannot see yet:**
-- cases the agent has never met, because all eight were used to tune it
-- an independent grader's view
-- real document contents, because the descriptions are made up
+## How I'll know it's working
 
-Results go in `eval-results.md`.
-
-### Layer 3 · Officer test: do officers catch what the agent and rules miss?
-
-| What | Where | Pass when | Last result |
-|---|---|---|---|
-| 20 made-up cases, 10 of them untrue answers, decided by people acting as officers | "Start the officer test" on `officer.html` | Every bad case caught | **Not run yet** |
-
-**Why it matters most:** the officer is the last safety net. In a scripted test, an officer who approves without reading let **10 of 10** bad cases through.
-
-Also measure, once it is run:
-- how long each case takes
-- how often officers agree with the suggestion
-
-### Layer 4 · Live use: does it work for real? *(Only after go-live)*
-
-| Metric | How it is counted | Floor or line |
+| Measure | What it is | Proposed |
 |---|---|---|
-| Wrong approvals | Approvals later found wrong, out of all approvals | **Kill switch:** any one found. The duty officer switches the agent off (`operating-model.md`) |
-| Return rate | Applications returned for missing or wrong details, out of all submitted | Below 0.5% |
-| Officer agreement | Cases where the officer's decision matches the agent's suggestion | Not set (open decision 3) |
-| Escalation rate | Cases the agent escalates, out of all cases | Not set (open decision 3) |
-| "Submit anyway" rate | Applicants who override the check, and how many of them were right to | Not set (open decision 3) |
-| Officer review time | Minutes per case, against today | Not set (open decision 3) |
-| Privacy | Replies a stranger can read by guessing IDs | 0. **Fails today: 20 of 20** |
+| **Goal** | Applicants get their application right before they submit, so fewer are returned. No application is ever approved wrongly | Proposed |
+| **Baseline** | **17%** of submissions returned today, each adding about six days (one-pager). Only **38%** read the guidance first. **Wrong approvals today: not known.** No count exists for the current process. **In the prototype:** 20 of 20 untrue answers get past the rules, and the officer test has not been run | Proposed |
+| **Target** | Return rate **below 0.5%**. Wrong approvals **below 0.0001%** (`opportunity.md`) | Proposed |
+| **Review date** | **Day 30** of the first 30 days below. Results are compared against the gates, and the group decides continue, pivot or stop. *No interim return-rate target for day 30 is set. See open decisions* | Proposed |
+| **Usage metric** | **Share of flagged applications fixed before submitting.** Count the applications where the check showed at least one thing to fix, then the share of those where the applicant fixed it rather than pressing "submit anyway". This shows applicants are acting on the feedback, which is Hypothesis (a) in `opportunity.md` | Proposed |
+| **Pattern to watch first** | **Officers approving whatever the agent suggests.** Watch for officer agreement close to 100%, with review times falling week by week. In a scripted test, an officer who approved without reading let **10 of 10** bad cases through. High agreement can look like success while the safety net is gone. Check it with the officer test, and by planting made-up bad cases in the weekly sample | Proposed |
+| **Stop line** | **Any wrong approval found.** The duty officer switches the agent off within 15 minutes, and the incident runbook in `operating-model.md` applies. **Also a stop:** any reply readable by someone who is not the applicant | Proposed |
 
-Counted from the agent log (`day3-build/CLAUDE.md`, Logs) and the officer queue.
+**Why the target cannot be checked directly:** at about 520,000 applications a year, 0.0001% is about one wrong approval every two years. So it is shown in parts:
 
-## How often, and who
+- the rules (automatic tests)
+- the agent (human eval)
+- the officer (officer test)
+- live use (wrong approvals found after the fact)
 
-Roles come from `day3-build/operating-model.md`.
+## First 30 days
 
-| What | How often | Who runs it | Who sees the result |
+All with made-up data, before any real applications. *(All Proposed.)*
+
+| Week | What happens | Who | Done when |
 |---|---|---|---|
-| Layer 1 automatic tests | On every change to the rules, the code or `CLAUDE.md`, and before every save | Engineering lead | Agent owner |
-| Layer 2 human eval | Every week, and after any change to `CLAUDE.md` or the reply wording | Agent owner runs it. Two graders score it, neither of them the author (`human-rubric.md`) | Product owner |
-| Layer 3 officer test | Before go-live. Then after any change that affects what officers see | Frontline operations director, with 3 to 5 officers or stand-ins | Product owner, chief executive sponsor |
-| Layer 4 live metrics | Daily for wrong approvals. Weekly for the rest | Agent owner | Product owner. Wrong approvals go to the duty officer at once |
-| Calibration | Monthly, and whenever the rubric, rules or `CLAUDE.md` change | Agent owner | Graders |
+| **Week 1 · set up** | Name a person for each role above. The participant scores the eight cases in `eval-results.md`, and Claude lists where the two scores disagree. Two officers calibrate on the five calibration cases | Product owner, agent owner, two officers | Every role has a person. Graders agree on Q1 to Q3, and are within 1 point on Q4 and Q5 |
+| **Week 2 · officer test and privacy** | Run the officer test with 3 to 5 officers or stand-ins, and record the catch rate and review time. Fix the privacy gap, and rerun the ID-guessing check | Frontline operations director, engineering lead | Officer test result recorded. Privacy check at 0 of 20 |
+| **Week 3 · new cases** | The policy team and officers write at least 10 new made-up cases the agent has not seen. Run the full human eval with the two calibrated graders. This is the first real baseline for the eval | Passport policy team, ICA officers, agent owner | New cases in `eval-cases.md`. First two-grader results in `eval-results.md` |
+| **Week 4 · review and decide** | Compare everything against the six go-live gates. Look for the pattern to watch first in the officer test. The group decides: continue to a limited pilot, pivot, or stop | Product owner, chief executive sponsor, frontline operations director | A recorded decision. If continue, a review date for the pilot is set |
 
-## Gates
-
-### Before go-live
-
-Every one must pass:
-
-1. Layer 1: all three automatic tests pass.
-2. Layer 2: no deal-breaker failed, scored by two calibrated graders, neither the author, and including cases the agent has not seen.
-3. Layer 3: officers catch every bad case in the officer test.
-4. Privacy: a stranger can read 0 of 20 replies.
-5. The real rules replace the made-up rulebook, confirmed by the passport policy team.
-6. Real document descriptions exist. Until then, the agent escalates every case.
-
-**Today:** gate 1 passes. Gate 2 passes, but only with one uncalibrated grader. Gates 3 to 6 are not met.
-
-### Continue, pivot or stop
-
-For the group, after the officer test. These are suggestions only:
-
-| If | Then |
-|---|---|
-| All gates pass | **Continue** to a limited pilot |
-| Officers miss untrue answers, even with the document descriptions in front of them | **Pivot:** for example, a document checklist officers must tick before approving, or guidance before the form (step 1 in the work map) instead of an agent |
-| The agent escalates almost everything, so officers save no time | **Pivot:** narrow what the agent does, for example to the rule check and drafting only |
-| Any wrong approval in testing that a fix cannot prevent | **Stop** |
-
-## Where the numbers come from
-
-**All synthetic today.** Every case, document and photo is made up:
-- 12 samples
-- 119 test cases
-- 8 eval cases
-- 20 officer test cases
-
-Live numbers only exist after go-live.
-
-Under the course rules, real data stays out of this repo. Any real numbers belong in a secure system, not here.
+**Not in the first 30 days:** real applications. Gates 5 and 6, the real rules and real document descriptions, need work outside this course.
 
 ## Open decisions
 
 None is decided.
 
-1. **What result means continue, pivot or stop.** The table above is a suggestion.
-2. **How many new eval cases to add,** and who writes them, so the set includes cases the agent has not seen.
-3. **Floors for the live metrics** with no number yet: officer agreement, escalation rate, "submit anyway" rate, review time.
-4. **How many officers** take the officer test, and whether they are real officers or stand-ins.
-5. **Who the graders are** (`human-rubric.md`, open decision 5).
-6. **How wrong approvals are found after the fact** in live use (`ai-prd.md`, open decision 18). The kill switch depends on it.
-7. **Who owns this plan,** and signs off changes to it.
+1. Who each role is (week 1).
+2. An interim return-rate target for the review date, since 0.5% is the long-term goal.
+3. How many real answers make the weekly sample after go-live, for example 20 or 50.
+4. Floors for officer agreement and the usage metric: what share counts as working, and what counts as a warning.
+5. How many made-up bad cases to plant in each weekly sample, so rubber-stamping shows up.
+6. Who signs off a change to this plan.
