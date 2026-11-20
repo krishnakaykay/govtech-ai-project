@@ -95,7 +95,7 @@ All made up.
 - **Photo preview:** cap and sunglasses cover the eyes
 - **Photo:** 360 × 360 pixels, 3 MB, taken 1 month ago, light blue background
 - **Suggestion given:** Approved
-- **Why it is bad:** it trusted what the applicant typed and did not check the photo. This is a wrong approval. The right suggestion is More info needed: "A photo where the face is fully visible" and "A photo without tinted glasses or sunglasses".
+- **Why it is bad:** it trusted what the applicant typed and did not check the photo. This is a wrong approval. The right suggestion is More info needed: "Send a photo where nothing covers the face." and "Send a photo without sunglasses or tinted glasses. Clear glasses are fine."
 
 ## Owner
 
@@ -120,13 +120,13 @@ If none of these happens, review it once a month.
 All made up. Each answer follows the rules in this file. Unless a question says otherwise, every other rule is met: the right documents are attached, and the photo was taken 1 month ago on a light blue background, with both ears visible, no glasses and no headgear.
 
 1. **ICA7201 · child, age 8 · renewal.** Vaccination box not ticked. Photo 350 × 350 pixels, 2 MB, face fully visible.
-   - **Expected:** More info needed. "1. Vaccination details of the child"
+   - **Expected:** More info needed. "1. Send your child's vaccination record."
 
 2. **ICA7202 · age 14 · new application.** Identity card attached, no child documents. Photo 400 × 300 pixels, 19.9 MB, taken exactly 4 months ago, face fully visible.
    - **Expected:** Approved. Age 14 is an adult. Both sizes and the photo date are on the limit, so they pass. The officer still decides.
 
 3. **ICA7203 · adult · renewal.** Photo 350 × 350 pixels, exactly 20 MB, white background, face fully visible.
-   - **Expected:** More info needed. "1. A photo file smaller than 20 MB" and "2. A photo with a plain light blue background"
+   - **Expected:** More info needed. "1. The photo file is too large (20 MB). Send a smaller file, under 20 MB." and "2. Send a photo with a plain light blue background."
 
 4. **ICA7204 · child, age 4 · new application.** Vaccination box ticked, but the attached file is a different child's record. Photo 330 × 330 pixels, 2 MB, face fully visible.
    - **Expected:** Escalated to officer. The document does not match what was typed (how-to rule 1).

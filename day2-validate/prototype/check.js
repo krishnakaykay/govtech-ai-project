@@ -35,111 +35,114 @@ function checkApplication(app, rules) {
 
   // Application type (made-up rulebook). Only the listed types are covered.
   if (isBlank(app.type)) {
-    need("type", "Whether this is a new passport or a renewal");
+    need("type", "Choose whether this is a new passport or a renewal.");
   } else if (rules.allowedTypes && rules.allowedTypes.indexOf(app.type) < 0) {
     notSure("type", "The rules do not cover this type of application (" + app.type + ")",
-      "An officer will tell you what is needed for this type of application");
+      "We need to check this type of application by hand. An officer will tell you what to send.");
   }
 
   // Who counts as a child (made-up rulebook).
   var isChild;
   if (isNumber(app.age) && (app.age < 0 || app.age > 120 || Math.floor(app.age) !== app.age)) {
-    need("age", "An age between 0 and 120, in whole years");
+    need("age", "Check the age. Enter it in whole years, from 0 to 120.");
     isChild = app.applicant === "child";
   } else if (isNumber(app.age)) {
     isChild = app.age < rules.childUnderAge;
   } else {
-    need("age", "The age of the passport holder");
+    need("age", "Enter the age of the person the passport is for.");
     isChild = app.applicant === "child";
   }
 
   // Documents (made-up rulebook, plus group rule 1).
   if (isChild) {
-    if (!app.birthRecordProvided) need("birthRecord", "The child's birth record");
-    if (!app.guardianIdProvided) need("guardianId", "The identity card of a consenting parent or guardian");
-    if (rules.childNeedsVaccination && !app.vaccinationProvided) need("vaccination", "Vaccination details of the child");
+    if (!app.birthRecordProvided) need("birthRecord", "Send your child's birth record.");
+    if (!app.guardianIdProvided) need("guardianId", "Send the identity card of a parent or guardian who agrees to this application.");
+    if (rules.childNeedsVaccination && !app.vaccinationProvided) need("vaccination", "Send your child's vaccination record.");
   } else if (!app.idCardProvided) {
-    need("idCard", "A copy of the passport holder's identity card");
+    need("idCard", "Send a copy of your identity card.");
   }
 
   var photo = app.photo;
   if (!photo) {
-    need("photo", "A passport photo");
+    need("photo", "Add a passport photo.");
   } else {
     // Group rule 2: photo size in pixels and file size.
     var min = rules.photo.minPixels;
     var max = rules.photo.maxPixels;
     if (!isNumber(photo.width) || !isNumber(photo.height)) {
-      need("photoSize", "The width and height of the photo, in pixels");
+      need("photoSize", "Enter the width and height of the photo, in pixels.");
     } else if (photo.width < min || photo.width > max || photo.height < min || photo.height > max) {
-      need("photoSize", "A photo between " + min + " and " + max + " pixels wide and high (yours is " +
-        photo.width + " × " + photo.height + ")");
+      var small = photo.width < min || photo.height < min;
+      var big = photo.width > max || photo.height > max;
+      var how = small && !big ? "too small" : big && !small ? "too big" : "the wrong size";
+      need("photoSize", "The photo is " + how + " (" + photo.width + " × " + photo.height + " pixels). Send one that is " +
+        min + " to " + max + " pixels wide and " + min + " to " + max + " pixels high.");
     }
 
     var maxMB = rules.photo.maxFileSizeMB;
     if (!isNumber(photo.sizeMB)) {
-      need("photoFile", "The file size of the photo");
+      need("photoFile", "Enter the file size of the photo.");
     } else if (photo.sizeMB <= 0) {
-      need("photoFile", "A photo file larger than 0 MB");
+      need("photoFile", "The photo file is empty. Send the photo again.");
     } else if (photo.sizeMB >= maxMB) {
-      need("photoFile", "A photo file smaller than " + maxMB + " MB (yours is " + photo.sizeMB + " MB)");
+      need("photoFile", "The photo file is too large (" + photo.sizeMB + " MB). Send a smaller file, under " + maxMB + " MB.");
     }
 
     // Made-up rulebook: when the photo was taken.
     var months = rules.photo.maxAgeMonths;
     if (!isNumber(photo.takenMonthsAgo)) {
-      need("photoDate", "When the photo was taken");
+      need("photoDate", "Enter how many months ago the photo was taken.");
     } else if (photo.takenMonthsAgo > months) {
-      need("photoDate", "A photo taken in the last " + months + " months");
+      need("photoDate", "The photo is too old. Send one taken in the last " + months + " months.");
     }
 
     // Made-up rulebook: background colour.
     if (isBlank(photo.background)) {
-      need("background", "Tell us the background colour of the photo");
+      need("background", "Tell us the background colour of the photo.");
     } else if (photo.background !== rules.photo.background) {
-      need("background", "A photo with a plain " + rules.photo.background + " background");
+      need("background", "Send a photo with a plain " + rules.photo.background + " background.");
     }
 
     // Group rule 3: the face must be visible.
     if (isBlank(photo.face)) {
-      need("face", "Tell us if the face is fully visible in the photo");
+      need("face", "Tell us if the whole face can be seen in the photo.");
     } else if (photo.face === "covered") {
-      need("face", "A photo where the face is fully visible");
+      need("face", "Send a photo where nothing covers the face.");
     } else if (photo.face !== "visible") {
       notSure("face", "The rules cannot tell if the face is visible in the photo",
-        "A photo where the face is fully visible");
+        "Send a clear photo where the whole face can be seen.");
     }
 
     // Made-up rulebook: both ears visible.
     if (isBlank(photo.ears)) {
-      need("ears", "Tell us if both ears are visible in the photo");
+      need("ears", "Tell us if both ears can be seen in the photo.");
     } else if (photo.ears === "no") {
-      need("ears", "A photo where both ears are visible");
+      need("ears", "Send a photo where both ears can be seen.");
     } else if (photo.ears !== "yes") {
       notSure("ears", "The rules cannot tell if both ears are visible in the photo",
-        "A photo where both ears are visible");
+        "Send a clear photo where both ears can be seen.");
     }
 
     // Made-up rulebook: no tinted glasses or sunglasses.
     if (isBlank(photo.glasses)) {
-      need("glasses", "Tell us if glasses are worn in the photo");
+      need("glasses", "Tell us if glasses are worn in the photo.");
     } else if (photo.glasses === "tinted") {
-      need("glasses", "A photo without tinted glasses or sunglasses");
+      need("glasses", "Send a photo without sunglasses or tinted glasses. Clear glasses are fine.");
     } else if (photo.glasses !== "none" && photo.glasses !== "clear") {
       notSure("glasses", "The rules cannot tell what glasses are worn in the photo",
-        "A photo without tinted glasses or sunglasses");
+        "Send a photo without sunglasses or tinted glasses. Clear glasses are fine.");
     }
 
     // Made-up rulebook: headgear only if worn every day, with the full face visible.
     if (isBlank(photo.headgear)) {
-      need("headgear", "Tell us if headgear is worn in the photo");
+      need("headgear", "Tell us if headgear is worn in the photo.");
     } else if (photo.headgear === "covers-face") {
-      need("headgear", "A photo where headgear does not cover any part of the face from chin to forehead");
+      need("headgear", "Send a photo where the headgear does not cover any part of the face, from chin to forehead.");
     } else if (photo.headgear === "not-daily") {
-      need("headgear", "A photo without headgear. Headgear is allowed only if it is worn every day");
+      need("headgear", "Send a photo without headgear. Headgear is only allowed if it is worn every day.");
     } else if (photo.headgear !== "none" && photo.headgear !== "daily-face-visible") {
       notSure("headgear", "The rules cannot tell if the headgear is allowed",
-        "A photo without headgear, or with headgear worn every day that does not cover the face");
+        "Send a new photo. If headgear is worn every day, it must not cover any part of the face, from chin to forehead. If not, send a photo without headgear.");
     }
   }
 
